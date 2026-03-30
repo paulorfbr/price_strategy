@@ -48,14 +48,6 @@ prix-strategie/
 2. Choisir **Open In → Browser → (votre navigateur)** — IntelliJ démarre son serveur intégré automatiquement.
 3. L'URL ressemble à `http://localhost:63342/prix-strategie/index.html`.
 
-### Lancer via un serveur local simple
-
-```bash
-# Python 3
-python -m http.server 8080
-# puis ouvrir http://localhost:8080
-```
-
 ### Prévisualiser une page isolée
 
 Chaque fichier `partials/page-*.html` est un document HTML complet avec lien vers `css/styles.css`. Ouvrez-le directement dans le navigateur via IntelliJ pour prévisualiser la page avec ses styles.
