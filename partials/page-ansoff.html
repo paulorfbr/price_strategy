@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matrice d'Ansoff — PrixStratégie</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style> body { padding: 24px; background: var(--bg); } </style>
+</head>
+<body>
+
+<div class="ansoff-layout">
+
+  <div class="ansoff-main">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span> Matrice d'Ansoff — Marchés × Produits</div>
+      <div style="margin-left:22px;">
+        <div class="ansoff-col-headers">
+          <div class="ansoff-col-header">Produit Existant</div>
+          <div class="ansoff-col-header">Nouveau Produit</div>
+        </div>
+      </div>
+      <div class="ansoff-row-wrap">
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:20px;">
+          <div class="ansoff-row-label" style="flex:1;">Nouveau Marché</div>
+          <div class="ansoff-row-label" style="flex:1;">Marché Existant</div>
+        </div>
+        <div style="flex:1;">
+          <div class="ansoff-grid" id="ansoff-matrix">
+            <div class="ansoff-cell ansoff-q-mkt" data-quadrant="market-dev">
+              <span class="ansoff-risk" style="background:#fef9c3;color:#854d0e;">⚡ Risque Moyen</span>
+              <div class="ansoff-q-name">Développement de Marché</div>
+              <div class="ansoff-q-sub">Nouveau marché · Produit existant</div>
+              <div class="ansoff-q-desc">Expansion vers de nouveaux segments ou géographies avec l'offre actuelle.</div>
+              <div class="ansoff-dots" id="dots-market-dev"></div>
+            </div>
+            <div class="ansoff-cell ansoff-q-div" data-quadrant="diversification">
+              <span class="ansoff-risk" style="background:#fee2e2;color:#991b1b;">🔴 Risque Élevé</span>
+              <div class="ansoff-q-name">Diversification</div>
+              <div class="ansoff-q-sub">Nouveau marché · Nouveau produit</div>
+              <div class="ansoff-q-desc">Stratégie la plus risquée. Nouvelle offre vers un segment inconnu.</div>
+              <div class="ansoff-dots" id="dots-diversification"></div>
+            </div>
+            <div class="ansoff-cell ansoff-q-pen active" data-quadrant="penetration">
+              <span class="ansoff-risk" style="background:#dcfce7;color:#166534;">🟢 Risque Faible</span>
+              <div class="ansoff-q-name">Pénétration de Marché</div>
+              <div class="ansoff-q-sub">Marché existant · Produit existant</div>
+              <div class="ansoff-q-desc">Augmenter la part de marché avec les produits actuels. Fidélisation, prix agressifs.</div>
+              <div class="ansoff-dots" id="dots-penetration"></div>
+            </div>
+            <div class="ansoff-cell ansoff-q-prd" data-quadrant="product-dev">
+              <span class="ansoff-risk" style="background:#dbeafe;color:#1e40af;">🔵 Risque Moyen</span>
+              <div class="ansoff-q-name">Développement de Produit</div>
+              <div class="ansoff-q-sub">Marché existant · Nouveau produit</div>
+              <div class="ansoff-q-desc">Nouvelle offre pour les clients actuels. Attention au risque de <strong>cannibalisation</strong>.</div>
+              <div class="ansoff-dots" id="dots-product-dev"></div>
+            </div>
+          </div>
+          <div class="ansoff-axis-x">
+            <span>← Existant</span>
+            <span style="font-weight:400;letter-spacing:0;text-transform:none;">PRODUITS</span>
+            <span>Nouveau →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ansoff-panel">
+    <div class="card" style="position:sticky;top:70px;">
+      <div class="card-title"><span class="dot"></span> Détail Stratégie</div>
+      <div id="ansoff-detail"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="card">
+  <div class="card-title" style="justify-content:space-between;">
+    <span><span class="dot" style="display:inline-block;margin-right:8px;width:8px;height:8px;border-radius:50%;background:var(--primary);"></span>Mes Initiatives &amp; Produits</span>
+    <button class="btn btn-outline btn-sm" onclick="addAnsoffInitiative()">+ Ajouter</button>
+  </div>
+  <div id="ansoff-initiatives-list"></div>
+</div>
+
+<div class="card">
+  <div class="card-title"><span class="dot"></span> Analyse des Risques &amp; Recommandations Tarifaires</div>
+  <div id="ansoff-risk"></div>
+</div>
+
+</body>
+</html>

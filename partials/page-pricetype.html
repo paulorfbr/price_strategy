@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Type de Prix — PrixStratégie</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style> body { padding: 24px; background: var(--bg); } </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-title"><span class="dot"></span> Choisissez votre Type de Prix</div>
+  <div class="option-grid" id="pricetype-options">
+    <div class="option-card selected" data-pricetype="magic">
+      <div class="option-icon">✨</div>
+      <div class="option-name">Prix Magique</div>
+      <div class="option-desc">Termine en ,99 ou ,95. Ex: 299 € → 299,99 €. Effet psychologique d'attraction.</div>
+    </div>
+    <div class="option-card" data-pricetype="psychological">
+      <div class="option-icon">🧠</div>
+      <div class="option-name">Prix Psychologique</div>
+      <div class="option-desc">Arrondi juste en dessous d'un palier symbolique. Ex: 1 000 € → 997 €.</div>
+    </div>
+    <div class="option-card" data-pricetype="rounded">
+      <div class="option-icon">🔵</div>
+      <div class="option-name">Prix Arrondi</div>
+      <div class="option-desc">Nombre entier propre. Ex: 312 € → 300 € ou 320 €. Perception de confiance et sérieux.</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title"><span class="dot"></span> Transformation du Prix</div>
+  <div id="price-transform"></div>
+</div>
+
+</body>
+</html>

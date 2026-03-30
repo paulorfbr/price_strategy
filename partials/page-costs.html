@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coûts & Rentabilité — PrixStratégie</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style> body { padding: 24px; background: var(--bg); } </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-title"><span class="dot"></span> Structure des Coûts</div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Coût variable unitaire</label>
+      <div class="input-unit">
+        <input type="number" id="var-cost" value="120" min="0" step="0.01" />
+        <span class="unit-label">€</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Coûts fixes mensuels</label>
+      <div class="input-unit">
+        <input type="number" id="fixed-cost" value="8000" min="0" step="1" />
+        <span class="unit-label">€</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Volume prévu (unités/mois)</label>
+      <div class="input-unit">
+        <input type="number" id="volume" value="40" min="1" step="1" />
+        <span class="unit-label">u.</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Marge souhaitée</label>
+      <div class="input-unit">
+        <input type="number" id="margin" value="30" min="0" max="500" step="0.5" />
+        <span class="unit-label">%</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Devise</label>
+      <select id="currency">
+        <option value="€">€ Euro</option>
+        <option value="$">$ Dollar</option>
+        <option value="£">£ Livre</option>
+        <option value="CHF">CHF Franc</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-row" id="cost-kpis"></div>
+
+<div class="card">
+  <div class="card-title"><span class="dot"></span> Visualisation des Seuils de Prix</div>
+  <div id="price-bar-viz"></div>
+</div>
+
+<div id="cost-alerts"></div>
+
+</body>
+</html>

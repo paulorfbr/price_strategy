@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stratégie Tarifaire — PrixStratégie</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style> body { padding: 24px; background: var(--bg); } </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-title"><span class="dot"></span> Choisissez votre Stratégie</div>
+  <div class="option-grid" id="strategy-options">
+    <div class="option-card selected" data-strategy="luxury">
+      <div class="option-icon">💎</div>
+      <div class="option-name">Luxe / Premium</div>
+      <div class="option-desc">Prix élevé pour positionner l'offre comme exclusive, haut de gamme. Marges fortes, volume limité.</div>
+    </div>
+    <div class="option-card" data-strategy="penetration">
+      <div class="option-icon">🚀</div>
+      <div class="option-name">Pénétration</div>
+      <div class="option-desc">Prix bas pour conquérir rapidement des parts de marché. Marges courtes, volume élevé.</div>
+    </div>
+    <div class="option-card" data-strategy="alignment">
+      <div class="option-icon">⚖️</div>
+      <div class="option-name">Alignement Marché</div>
+      <div class="option-desc">Prix aligné sur les concurrents. Positionnement neutre, compétitif.</div>
+    </div>
+    <div class="option-card" data-strategy="discriminatory">
+      <div class="option-icon">🎚️</div>
+      <div class="option-name">Discriminatoire</div>
+      <div class="option-desc">Tarification différenciée par segment de clientèle (Starter, Pro, Enterprise).</div>
+    </div>
+  </div>
+</div>
+
+<div id="strategy-config"></div>
+
+<div class="card" id="strategy-impact-card">
+  <div class="card-title"><span class="dot"></span> Impact sur le Prix</div>
+  <div id="strategy-impact"></div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carte Perceptuelle — PrixStratégie</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style> body { padding: 24px; background: var(--bg); } </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-title"><span class="dot"></span> Configurer les Axes et Acteurs</div>
+  <div class="form-grid" style="margin-bottom:14px;">
+    <div class="form-group">
+      <label>Axe X — Libellé Gauche</label>
+      <input type="text" id="axis-x-left" value="Bas Prix" />
+    </div>
+    <div class="form-group">
+      <label>Axe X — Libellé Droite</label>
+      <input type="text" id="axis-x-right" value="Haut Prix" />
+    </div>
+    <div class="form-group">
+      <label>Axe Y — Libellé Bas</label>
+      <input type="text" id="axis-y-bottom" value="Faible Qualité" />
+    </div>
+    <div class="form-group">
+      <label>Axe Y — Libellé Haut</label>
+      <input type="text" id="axis-y-top" value="Haute Qualité" />
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+    <div class="form-group" style="flex:0 0 auto;">
+      <label>Ma Position X (0–100)</label>
+      <div class="input-unit" style="width:120px;">
+        <input type="number" id="my-x" value="60" min="0" max="100" step="1" />
+      </div>
+    </div>
+    <div class="form-group" style="flex:0 0 auto;">
+      <label>Ma Position Y (0–100)</label>
+      <div class="input-unit" style="width:120px;">
+        <input type="number" id="my-y" value="75" min="0" max="100" step="1" />
+      </div>
+    </div>
+    <div class="form-group" style="flex:0 0 auto;">
+      <label>Nom de mon entreprise</label>
+      <input type="text" id="my-name" value="Mon Entreprise" style="width:180px;" />
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <label>Concurrents</label>
+    <button class="btn btn-outline btn-sm" onclick="addCompetitor()">+ Ajouter</button>
+  </div>
+  <div id="competitors-list" class="competitors-form"></div>
+</div>
+
+<div class="card">
+  <div class="card-title"><span class="dot"></span> Carte Perceptuelle</div>
+  <div id="perceptual-canvas-wrap">
+    <canvas id="perceptual-canvas"></canvas>
+    <span class="axis-label" id="lbl-x-left"   style="bottom:46%;left:4px;"></span>
+    <span class="axis-label" id="lbl-x-right"  style="bottom:46%;right:4px;text-align:right;"></span>
+    <span class="axis-label" id="lbl-y-top"    style="top:4px;left:50%;transform:translateX(-50%);"></span>
+    <span class="axis-label" id="lbl-y-bottom" style="bottom:4px;left:50%;transform:translateX(-50%);"></span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title"><span class="dot"></span> Analyse du Positionnement</div>
+  <div id="positioning-analysis"></div>
+</div>
+
+</body>
+</html>
