@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrixStratégie — Outil de Tarification IT</title>
+  <style>
+    :root {
+      --primary:   #2563eb; --primary-d: #1d4ed8;
+      --success:   #16a34a; --warning:   #d97706;
+      --danger:    #dc2626; --info:      #0891b2;
+      --bg:        #f1f5f9; --card:      #ffffff;
+      --border:    #e2e8f0; --text:      #1e293b;
+      --muted:     #64748b; --sidebar:   #1e293b; --sidebar-a: #334155;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .app { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { width: 240px; min-height: 100vh; background: var(--sidebar); color: #f8fafc; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-brand { padding: 24px 20px 20px; border-bottom: 1px solid var(--sidebar-a); }
+    .sidebar-brand h1 { font-size: 1.1rem; font-weight: 700; color: #f8fafc; }
+    .sidebar-brand p  { font-size: 0.72rem; color: #94a3b8; margin-top: 3px; }
+    .sidebar-nav { padding: 12px 0; flex: 1; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; cursor: pointer; font-size: 0.88rem; color: #94a3b8; transition: all 0.15s; border-left: 3px solid transparent; user-select: none; }
+    .nav-item:hover  { background: var(--sidebar-a); color: #f1f5f9; }
+    .nav-item.active { background: var(--sidebar-a); color: #fff; border-left-color: var(--primary); }
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--sidebar-a); font-size: 0.72rem; color: #475569; }
+
+    /* Main */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar h2 { font-size: 1.05rem; font-weight: 600; }
+    .topbar .badge-strategy { font-size: 0.76rem; padding: 3px 10px; border-radius: 20px; background: #dbeafe; color: var(--primary); font-weight: 600; }
+    .content { padding: 28px; }
+
+    /* Cards */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px 24px; margin-bottom: 20px; }
+    .card-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .card-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+
+    /* Forms */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    input[type=number], input[type=text], select { border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 0.9rem; color: var(--text); background: #f8fafc; transition: border 0.15s; }
+    input[type=number]:focus, input[type=text]:focus, select:focus { outline: none; border-color: var(--primary); background: #fff; }
+    .input-unit { position: relative; }
+    .input-unit input { padding-right: 36px; width: 100%; }
+    .unit-label { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.78rem; color: var(--muted); font-weight: 600; pointer-events: none; }
+
+    /* Option cards */
+    .option-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .option-card { border: 2px solid var(--border); border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.15s; user-select: none; }
+    .option-card:hover, .option-card.selected { border-color: var(--primary); background: #eff6ff; }
+    .option-card .option-icon { font-size: 1.5rem; margin-bottom: 6px; }
+    .option-card .option-name { font-weight: 700; font-size: 0.9rem; }
+    .option-card .option-desc { font-size: 0.78rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+    .option-card.selected .option-name { color: var(--primary); }
+
+    /* KPIs */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; text-align: center; }
+    .kpi .kpi-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em; }
+    .kpi .kpi-value { font-size: 1.4rem; font-weight: 800; margin-top: 4px; }
+    .kpi.danger  { border-color: var(--danger);  background: #fff5f5; } .kpi.danger  .kpi-value { color: var(--danger); }
+    .kpi.warning { border-color: var(--warning); background: #fffbeb; } .kpi.warning .kpi-value { color: var(--warning); }
+    .kpi.success { border-color: var(--success); background: #f0fdf4; } .kpi.success .kpi-value { color: var(--success); }
+    .kpi.info    { border-color: var(--info);    background: #ecfeff; } .kpi.info    .kpi-value { color: var(--info); }
+
+    /* Price bar */
+    .price-bar-track { height: 28px; background: #e2e8f0; border-radius: 6px; position: relative; overflow: visible; }
+    .price-bar-fill  { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+    .price-bar-marker { position: absolute; top: -6px; width: 3px; height: 40px; border-radius: 2px; }
+    .price-bar-label  { position: absolute; top: 34px; font-size: 0.68rem; color: var(--muted); transform: translateX(-50%); white-space: nowrap; font-weight: 600; }
+
+    /* Alerts */
+    .alert { border-radius: 7px; padding: 10px 14px; font-size: 0.83rem; display: flex; align-items: flex-start; gap: 8px; margin-top: 10px; }
+    .alert-danger  { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+    .alert-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .alert-info    { background: #ecfeff; border: 1px solid #a5f3fc; color: #164e63; }
+
+    /* Pages */
+    .page { display: none; } .page.active { display: block; }
+
+    /* Tables */
+    .segments-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .segments-table th { background: #f8fafc; font-weight: 700; padding: 8px 10px; text-align: left; border-bottom: 2px solid var(--border); }
+    .segments-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+    .segments-table input { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-size: 0.83rem; }
+    .synth-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .synth-table th { padding: 9px 12px; text-align: left; background: #f8fafc; font-weight: 700; border-bottom: 2px solid var(--border); }
+    .synth-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+    .synth-table tr:last-child td { border-bottom: none; }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+    .btn-primary { background: var(--primary); color: #fff; } .btn-primary:hover { background: var(--primary-d); }
+    .btn-outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); } .btn-outline:hover { background: #eff6ff; }
+    .btn-sm { padding: 4px 10px; font-size: 0.78rem; }
+    .btn-danger-sm { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; padding: 3px 8px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; }
+
+    /* Tags */
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; }
+    .tag-blue { background: #dbeafe; color: #1e40af; } .tag-green  { background: #dcfce7; color: #166534; }
+    .tag-amber{ background: #fef3c7; color: #92400e; } .tag-red    { background: #fee2e2; color: #991b1b; }
+    .tag-purple{ background: #ede9fe; color: #5b21b6; }
+
+    /* Perceptual map */
+    #perceptual-canvas-wrap { position: relative; width: 100%; padding-bottom: 56%; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #fafcff; }
+    #perceptual-canvas-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .axis-label { position: absolute; font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .competitors-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 12px; }
+    .competitor-row { display: flex; gap: 10px; align-items: flex-start; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+    .competitor-row input[type=text], .competitor-row input[type=number] { border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-size: 0.82rem; background: #fff; width: 100%; }
+    .competitor-row input[type=color] { width: 30px; height: 30px; padding: 2px; border-radius: 4px; cursor: pointer; flex: 0 0 30px; margin-top: 2px; border: 1px solid var(--border); }
+
+    /* Ansoff */
+    .ansoff-layout { display: flex; gap: 20px; flex-wrap: wrap; }
+    .ansoff-main  { flex: 1 1 420px; } .ansoff-panel { flex: 0 1 300px; min-width: 240px; }
+    .ansoff-col-headers { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-bottom: 3px; text-align: center; }
+    .ansoff-col-header { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 8px; background: #f8fafc; border-radius: 4px; }
+    .ansoff-row-wrap { display: flex; gap: 6px; align-items: stretch; }
+    .ansoff-row-label { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; min-width: 16px; }
+    .ansoff-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3px; background: var(--border); border-radius: 8px; overflow: hidden; border: 2px solid var(--border); }
+    .ansoff-cell { padding: 16px 14px; cursor: pointer; transition: all 0.15s; position: relative; min-height: 150px; }
+    .ansoff-cell:hover { filter: brightness(0.94); } .ansoff-cell.active { box-shadow: inset 0 0 0 3px var(--primary); }
+    .ansoff-q-pen { background: #f0fdf4; } .ansoff-q-mkt { background: #fefce8; }
+    .ansoff-q-prd { background: #eff6ff; } .ansoff-q-div { background: #fff1f2; }
+    .ansoff-risk { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 0.68rem; font-weight: 700; margin-bottom: 5px; }
+    .ansoff-q-name { font-weight: 800; font-size: 0.88rem; margin-bottom: 2px; }
+    .ansoff-q-sub  { font-size: 0.7rem; color: var(--muted); margin-bottom: 6px; }
+    .ansoff-q-desc { font-size: 0.76rem; line-height: 1.4; color: #374151; }
+    .ansoff-dots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 8px; }
+    .ansoff-dot  { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+    .ansoff-axis-x { display: flex; justify-content: space-between; font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 6px; padding: 0 2px; }
+
+    /* Responsive */
+    @media (max-width: 900px) { .sidebar { width: 200px; } .main { margin-left: 200px; } }
+    @media (max-width: 640px) {
+      .sidebar { width: 100%; min-height: auto; position: relative; flex-direction: row; }
+      .sidebar-nav { display: flex; padding: 0; overflow-x: auto; }
+      .nav-item { padding: 12px 14px; border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; }
+      .nav-item.active { border-left: none; border-bottom-color: var(--primary); }
+      .sidebar-brand, .sidebar-footer { display: none; }
+      .main { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>💼 PrixStratégie</h1>
+      <p>Outil de tarification IT</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="costs">      <span class="nav-icon">📊</span> Coûts &amp; Rentabilité</div>
+      <div class="nav-item" data-page="strategy">   <span class="nav-icon">🎯</span> Stratégie Tarifaire</div>
+      <div class="nav-item" data-page="pricetype">  <span class="nav-icon">🏷️</span> Type de Prix</div>
+      <div class="nav-item" data-page="positioning"><span class="nav-icon">🗺️</span> Carte Perceptuelle</div>
+      <div class="nav-item" data-page="ansoff">     <span class="nav-icon">🔲</span> Matrice d'Ansoff</div>
+      <div class="nav-item" data-page="synthesis">  <span class="nav-icon">✅</span> Synthèse</div>
+    </nav>
+    <div class="sidebar-footer">PrixStratégie v1.0 · IT Pricing</div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+    <div class="topbar">
+      <h2 id="page-title">Coûts &amp; Rentabilité</h2>
+      <span class="badge-strategy" id="topbar-summary">Aucune stratégie sélectionnée</span>
+    </div>
+    <div class="content">
+
+      <!-- PAGE 1 — COÛTS -->
+      <div id="page-costs" class="page active">
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Structure des Coûts</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Coût variable unitaire</label>
+              <div class="input-unit"><input type="number" id="var-cost" value="120" min="0" step="0.01" /><span class="unit-label">€</span></div>
+            </div>
+            <div class="form-group">
+              <label>Coûts fixes mensuels</label>
+              <div class="input-unit"><input type="number" id="fixed-cost" value="8000" min="0" step="1" /><span class="unit-label">€</span></div>
+            </div>
+            <div class="form-group">
+              <label>Volume prévu (unités/mois)</label>
+              <div class="input-unit"><input type="number" id="volume" value="40" min="1" step="1" /><span class="unit-label">u.</span></div>
+            </div>
+            <div class="form-group">
+              <label>Marge souhaitée</label>
+              <div class="input-unit"><input type="number" id="margin" value="30" min="0" max="500" step="0.5" /><span class="unit-label">%</span></div>
+            </div>
+            <div class="form-group">
+              <label>Devise</label>
+              <select id="currency">
+                <option value="€">€ Euro</option>
+                <option value="$">$ Dollar</option>
+                <option value="£">£ Livre</option>
+                <option value="CHF">CHF Franc</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-row" id="cost-kpis"></div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Visualisation des Seuils de Prix</div>
+          <div id="price-bar-viz"></div>
+        </div>
+        <div id="cost-alerts"></div>
+      </div>
+
+      <!-- PAGE 2 — STRATÉGIE -->
+      <div id="page-strategy" class="page">
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Choisissez votre Stratégie</div>
+          <div class="option-grid" id="strategy-options">
+            <div class="option-card selected" data-strategy="luxury">
+              <div class="option-icon">💎</div><div class="option-name">Luxe / Premium</div>
+              <div class="option-desc">Prix élevé pour positionner l'offre comme exclusive, haut de gamme. Marges fortes, volume limité.</div>
+            </div>
+            <div class="option-card" data-strategy="penetration">
+              <div class="option-icon">🚀</div><div class="option-name">Pénétration</div>
+              <div class="option-desc">Prix bas pour conquérir rapidement des parts de marché. Marges courtes, volume élevé.</div>
+            </div>
+            <div class="option-card" data-strategy="alignment">
+              <div class="option-icon">⚖️</div><div class="option-name">Alignement Marché</div>
+              <div class="option-desc">Prix aligné sur les concurrents. Positionnement neutre, compétitif.</div>
+            </div>
+            <div class="option-card" data-strategy="discriminatory">
+              <div class="option-icon">🎚️</div><div class="option-name">Discriminatoire</div>
+              <div class="option-desc">Tarification différenciée par segment de clientèle (Starter, Pro, Enterprise).</div>
+            </div>
+          </div>
+        </div>
+        <div id="strategy-config"></div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Impact sur le Prix</div>
+          <div id="strategy-impact"></div>
+        </div>
+      </div>
+
+      <!-- PAGE 3 — TYPE DE PRIX -->
+      <div id="page-pricetype" class="page">
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Choisissez votre Type de Prix</div>
+          <div class="option-grid" id="pricetype-options">
+            <div class="option-card selected" data-pricetype="magic">
+              <div class="option-icon">✨</div><div class="option-name">Prix Magique</div>
+              <div class="option-desc">Termine en ,99 ou ,95. Ex: 299 € → 299,99 €. Effet psychologique d'attraction.</div>
+            </div>
+            <div class="option-card" data-pricetype="psychological">
+              <div class="option-icon">🧠</div><div class="option-name">Prix Psychologique</div>
+              <div class="option-desc">Arrondi juste en dessous d'un palier symbolique. Ex: 1 000 € → 997 €.</div>
+            </div>
+            <div class="option-card" data-pricetype="rounded">
+              <div class="option-icon">🔵</div><div class="option-name">Prix Arrondi</div>
+              <div class="option-desc">Nombre entier propre. Ex: 312 € → 300 € ou 320 €. Perception de confiance et sérieux.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Transformation du Prix</div>
+          <div id="price-transform"></div>
+        </div>
+      </div>
+
+      <!-- PAGE 4 — CARTE PERCEPTUELLE -->
+      <div id="page-positioning" class="page">
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Configurer les Axes et Acteurs</div>
+          <div class="form-grid" style="margin-bottom:14px;">
+            <div class="form-group"><label>Axe X — Libellé Gauche</label><input type="text" id="axis-x-left" value="Bas Prix" /></div>
+            <div class="form-group"><label>Axe X — Libellé Droite</label><input type="text" id="axis-x-right" value="Haut Prix" /></div>
+            <div class="form-group"><label>Axe Y — Libellé Bas</label><input type="text" id="axis-y-bottom" value="Faible Qualité" /></div>
+            <div class="form-group"><label>Axe Y — Libellé Haut</label><input type="text" id="axis-y-top" value="Haute Qualité" /></div>
+          </div>
+          <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+            <div class="form-group" style="flex:0 0 auto;">
+              <label>Ma Position X (0–100)</label>
+              <div class="input-unit" style="width:120px;"><input type="number" id="my-x" value="60" min="0" max="100" step="1" /></div>
+            </div>
+            <div class="form-group" style="flex:0 0 auto;">
+              <label>Ma Position Y (0–100)</label>
+              <div class="input-unit" style="width:120px;"><input type="number" id="my-y" value="75" min="0" max="100" step="1" /></div>
+            </div>
+            <div class="form-group" style="flex:0 0 auto;">
+              <label>Nom de mon entreprise</label>
+              <input type="text" id="my-name" value="Mon Entreprise" style="width:180px;" />
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <label>Concurrents</label>
+            <button class="btn btn-outline btn-sm" onclick="addCompetitor()">+ Ajouter</button>
+          </div>
+          <div id="competitors-list" class="competitors-form"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Carte Perceptuelle</div>
+          <div id="perceptual-canvas-wrap">
+            <canvas id="perceptual-canvas"></canvas>
+            <span class="axis-label" id="lbl-x-left"   style="bottom:46%;left:4px;"></span>
+            <span class="axis-label" id="lbl-x-right"  style="bottom:46%;right:4px;text-align:right;"></span>
+            <span class="axis-label" id="lbl-y-top"    style="top:4px;left:50%;transform:translateX(-50%);"></span>
+            <span class="axis-label" id="lbl-y-bottom" style="bottom:4px;left:50%;transform:translateX(-50%);"></span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Analyse du Positionnement</div>
+          <div id="positioning-analysis"></div>
+        </div>
+      </div>
+
+      <!-- PAGE 5 — MATRICE D'ANSOFF -->
+      <div id="page-ansoff" class="page">
+        <div class="ansoff-layout">
+          <div class="ansoff-main">
+            <div class="card">
+              <div class="card-title"><span class="dot"></span> Matrice d'Ansoff — Marchés × Produits</div>
+              <div style="margin-left:22px;">
+                <div class="ansoff-col-headers">
+                  <div class="ansoff-col-header">Produit Existant</div>
+                  <div class="ansoff-col-header">Nouveau Produit</div>
+                </div>
+              </div>
+              <div class="ansoff-row-wrap">
+                <div style="display:flex;flex-direction:column;gap:3px;min-width:20px;">
+                  <div class="ansoff-row-label" style="flex:1;">Nouveau Marché</div>
+                  <div class="ansoff-row-label" style="flex:1;">Marché Existant</div>
+                </div>
+                <div style="flex:1;">
+                  <div class="ansoff-grid">
+                    <div class="ansoff-cell ansoff-q-mkt" data-quadrant="market-dev">
+                      <span class="ansoff-risk" style="background:#fef9c3;color:#854d0e;">⚡ Risque Moyen</span>
+                      <div class="ansoff-q-name">Développement de Marché</div>
+                      <div class="ansoff-q-sub">Nouveau marché · Produit existant</div>
+                      <div class="ansoff-q-desc">Expansion vers de nouveaux segments ou géographies avec l'offre actuelle.</div>
+                      <div class="ansoff-dots" id="dots-market-dev"></div>
+                    </div>
+                    <div class="ansoff-cell ansoff-q-div" data-quadrant="diversification">
+                      <span class="ansoff-risk" style="background:#fee2e2;color:#991b1b;">🔴 Risque Élevé</span>
+                      <div class="ansoff-q-name">Diversification</div>
+                      <div class="ansoff-q-sub">Nouveau marché · Nouveau produit</div>
+                      <div class="ansoff-q-desc">Stratégie la plus risquée. Nouvelle offre vers un segment inconnu.</div>
+                      <div class="ansoff-dots" id="dots-diversification"></div>
+                    </div>
+                    <div class="ansoff-cell ansoff-q-pen active" data-quadrant="penetration">
+                      <span class="ansoff-risk" style="background:#dcfce7;color:#166534;">🟢 Risque Faible</span>
+                      <div class="ansoff-q-name">Pénétration de Marché</div>
+                      <div class="ansoff-q-sub">Marché existant · Produit existant</div>
+                      <div class="ansoff-q-desc">Augmenter la part de marché avec les produits actuels. Fidélisation, prix agressifs.</div>
+                      <div class="ansoff-dots" id="dots-penetration"></div>
+                    </div>
+                    <div class="ansoff-cell ansoff-q-prd" data-quadrant="product-dev">
+                      <span class="ansoff-risk" style="background:#dbeafe;color:#1e40af;">🔵 Risque Moyen</span>
+                      <div class="ansoff-q-name">Développement de Produit</div>
+                      <div class="ansoff-q-sub">Marché existant · Nouveau produit</div>
+                      <div class="ansoff-q-desc">Nouvelle offre pour les clients actuels. Attention au risque de <strong>cannibalisation</strong>.</div>
+                      <div class="ansoff-dots" id="dots-product-dev"></div>
+                    </div>
+                  </div>
+                  <div class="ansoff-axis-x">
+                    <span>← Existant</span>
+                    <span style="font-weight:400;letter-spacing:0;text-transform:none;">PRODUITS</span>
+                    <span>Nouveau →</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ansoff-panel">
+            <div class="card" style="position:sticky;top:70px;">
+              <div class="card-title"><span class="dot"></span> Détail Stratégie</div>
+              <div id="ansoff-detail"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="justify-content:space-between;">
+            <span><span class="dot" style="display:inline-block;margin-right:8px;width:8px;height:8px;border-radius:50%;background:var(--primary);"></span>Mes Initiatives &amp; Produits</span>
+            <button class="btn btn-outline btn-sm" onclick="addAnsoffInitiative()">+ Ajouter</button>
+          </div>
+          <div id="ansoff-initiatives-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Analyse des Risques &amp; Recommandations Tarifaires</div>
+          <div id="ansoff-risk"></div>
+        </div>
+      </div>
+
+      <!-- PAGE 6 — SYNTHÈSE -->
+      <div id="page-synthesis" class="page">
+        <div class="kpi-row" id="synth-kpis"></div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Récapitulatif des Choix</div>
+          <table class="synth-table" id="synth-table"></table>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Prix Final Recommandé</div>
+          <div id="final-price-recommendation"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Validation des Seuils</div>
+          <div id="synth-validation"></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /app -->
+
+<script>
+// ── STATE ────────────────────────────────────────────────────
+const state = {
+  strategy: 'luxury',
+  pricetype: 'magic',
+  alignmentPrice: null,
+  segments: [
+    { name: 'Starter',    multiplier: 0.7 },
+    { name: 'Pro',        multiplier: 1.0 },
+    { name: 'Enterprise', multiplier: 1.6 },
+  ],
+  competitors: [
+    { name: 'Concurrent A', x: 50, y: 55, color: '#ef4444' },
+    { name: 'Concurrent B', x: 80, y: 85, color: '#f97316' },
+    { name: 'Concurrent C', x: 25, y: 40, color: '#8b5cf6' },
+  ],
+  ansoffQuadrant: 'penetration',
+  ansoffInitiatives: [
+    { name: 'Offre SaaS Core',      quadrant: 'penetration', description: '' },
+    { name: 'Module Analytics Pro', quadrant: 'product-dev', description: '' },
+  ],
+};
+
+// ── UTILS ────────────────────────────────────────────────────
+function currency() { return document.getElementById('currency')?.value ?? '€'; }
+function fmt(n) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + currency(); }
+
+function getInputs() {
+  return {
+    varCost:   parseFloat(document.getElementById('var-cost').value)   || 0,
+    fixedCost: parseFloat(document.getElementById('fixed-cost').value) || 0,
+    volume:    parseFloat(document.getElementById('volume').value)     || 1,
+    margin:    parseFloat(document.getElementById('margin').value)     || 0,
+  };
+}
+
+function calcCosts() {
+  const { varCost, fixedCost, volume, margin } = getInputs();
+  const costPerUnit  = varCost + fixedCost / volume;
+  const minPrice     = costPerUnit;
+  const optimalPrice = costPerUnit * (1 + margin / 100);
+  return { varCost, fixedCost, volume, margin, costPerUnit, minPrice, optimalPrice };
+}
+
+function strategyPrice(optimalPrice) {
+  switch (state.strategy) {
+    case 'luxury':         return optimalPrice * 2.2;
+    case 'penetration':    return optimalPrice * 1.05;
+    case 'alignment':      return state.alignmentPrice != null ? state.alignmentPrice : optimalPrice;
+    case 'discriminatory': return optimalPrice;
+    default:               return optimalPrice;
+  }
+}
+
+function applyPriceType(price) {
+  switch (state.pricetype) {
+    case 'magic': {
+      const base = Math.floor(price);
+      return base > 0 ? base - 0.01 : 0.99;
+    }
+    case 'psychological': {
+      const thresholds = [1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000];
+      let t = thresholds.find(t => t > price);
+      if (!t) t = Math.ceil(price / 1000) * 1000;
+      return t - 3;
+    }
+    case 'rounded': {
+      if (price <= 0) return 0;
+      const mag  = Math.pow(10, Math.floor(Math.log10(price)));
+      const step = mag >= 1000 ? 500 : mag >= 100 ? 50 : mag >= 10 ? 5 : 1;
+      return Math.round(price / step) * step;
+    }
+    default: return price;
+  }
+}
+
+function finalPrice() {
+  const { optimalPrice } = calcCosts();
+  return applyPriceType(strategyPrice(optimalPrice));
+}
+
+// ── PAGE: COSTS ──────────────────────────────────────────────
+function renderCosts() {
+  const { varCost, fixedCost, volume, margin, costPerUnit, minPrice, optimalPrice } = calcCosts();
+  const cur = currency();
+  const fp  = finalPrice();
+
+  document.getElementById('cost-kpis').innerHTML = `
+    <div class="kpi info"><div class="kpi-label">Coût Variable Unitaire</div><div class="kpi-value">${varCost.toLocaleString('fr-FR',{maximumFractionDigits:2})} ${cur}</div></div>
+    <div class="kpi info"><div class="kpi-label">Coût Complet Unitaire</div><div class="kpi-value">${costPerUnit.toLocaleString('fr-FR',{maximumFractionDigits:2})} ${cur}</div></div>
+    <div class="kpi danger"><div class="kpi-label">Prix Minimum</div><div class="kpi-value">${minPrice.toLocaleString('fr-FR',{maximumFractionDigits:2})} ${cur}</div></div>
+    <div class="kpi warning"><div class="kpi-label">Prix Optimal (${margin}%)</div><div class="kpi-value">${optimalPrice.toLocaleString('fr-FR',{maximumFractionDigits:2})} ${cur}</div></div>
+    <div class="kpi success"><div class="kpi-label">Prix Recommandé Final</div><div class="kpi-value">${fp.toLocaleString('fr-FR',{maximumFractionDigits:2})} ${cur}</div></div>
+  `;
+
+  const max = Math.max(optimalPrice * 3, fp * 1.1);
+  const toW = v => Math.min(100, (v / max) * 100).toFixed(1);
+  document.getElementById('price-bar-viz').innerHTML = `
+    <div style="margin-bottom:50px;">
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;font-weight:600;">Échelle des prix (rapport aux seuils de rentabilité)</div>
+      <div class="price-bar-track">
+        <div class="price-bar-fill" style="width:${toW(fp)}%;background:${fp<minPrice?'var(--danger)':fp<optimalPrice?'var(--warning)':'var(--success)'};"></div>
+        <div class="price-bar-marker" style="left:${toW(minPrice)}%;background:var(--danger);"><span class="price-bar-label">${minPrice.toFixed(0)} ${cur}<br/>Min</span></div>
+        <div class="price-bar-marker" style="left:${toW(optimalPrice)}%;background:var(--warning);"><span class="price-bar-label">${optimalPrice.toFixed(0)} ${cur}<br/>Optimal</span></div>
+        <div class="price-bar-marker" style="left:${toW(fp)}%;background:var(--primary);width:4px;"><span class="price-bar-label" style="color:var(--primary);font-weight:800;">${fp.toFixed(0)} ${cur}<br/>Final</span></div>
+      </div>
+    </div>`;
+
+  const margEff = (((fp - costPerUnit) / fp) * 100).toFixed(1);
+  document.getElementById('cost-alerts').innerHTML = fp < minPrice
+    ? `<div class="alert alert-danger">⛔ Le prix final (${fmt(fp)}) est en dessous du prix minimum de rentabilité (${fmt(minPrice)}). Vous perdez de l'argent.</div>`
+    : fp < optimalPrice
+    ? `<div class="alert alert-warning">⚠️ Le prix final (${fmt(fp)}) est en dessous du prix optimal (${fmt(optimalPrice)}). La marge souhaitée de ${margin}% n'est pas atteinte.</div>`
+    : `<div class="alert alert-success">✅ Le prix final (${fmt(fp)}) est au-dessus du seuil de rentabilité. Marge effective : ${margEff}%.</div>`;
+}
+
+// ── PAGE: STRATEGY ───────────────────────────────────────────
+function renderStrategy() {
+  document.querySelectorAll('#strategy-options .option-card').forEach(el =>
+    el.classList.toggle('selected', el.dataset.strategy === state.strategy));
+
+  const { optimalPrice, minPrice } = calcCosts();
+  const cur = currency();
+  let configHtml = '';
+
+  if (state.strategy === 'alignment') {
+    const mp = state.alignmentPrice ?? optimalPrice;
+    configHtml = `<div class="card"><div class="card-title"><span class="dot"></span> Prix du Marché (Concurrents)</div>
+      <div class="form-grid"><div class="form-group"><label>Prix moyen concurrentiel</label>
+      <div class="input-unit"><input type="number" id="alignment-price" value="${mp}" min="0" step="0.01"
+        oninput="state.alignmentPrice=parseFloat(this.value)||null; renderAll();" /><span class="unit-label">${cur}</span></div>
+      </div></div></div>`;
+  }
+
+  if (state.strategy === 'discriminatory') {
+    const rows = state.segments.map((s, i) => {
+      const p = applyPriceType(optimalPrice * s.multiplier);
+      const status = p < minPrice ? '🔴 sous min' : p < optimalPrice ? '🟡 sous optimal' : '🟢 ok';
+      return `<tr>
+        <td><input type="text" value="${s.name}" oninput="state.segments[${i}].name=this.value; renderAll();" /></td>
+        <td><input type="number" value="${s.multiplier}" min="0.1" step="0.05" oninput="state.segments[${i}].multiplier=parseFloat(this.value)||1; renderAll();" /></td>
+        <td><strong>${fmt(optimalPrice * s.multiplier)}</strong></td>
+        <td><strong>${fmt(p)}</strong></td>
+        <td>${status}</td>
+        <td><button class="btn-danger-sm" onclick="removeSegment(${i})">✕</button></td>
+      </tr>`;
+    }).join('');
+    configHtml = `<div class="card">
+      <div class="card-title" style="justify-content:space-between;">
+        <span><span class="dot" style="display:inline-block;margin-right:8px;"></span>Segments de Clientèle</span>
+        <button class="btn btn-outline btn-sm" onclick="addSegment()">+ Segment</button>
+      </div>
+      <table class="segments-table">
+        <thead><tr><th>Segment</th><th>Multiplicateur</th><th>Prix Base</th><th>Prix Final</th><th>Statut</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`;
+  }
+
+  document.getElementById('strategy-config').innerHTML = configHtml;
+
+  const labels = { luxury:'Luxe / Premium', penetration:'Pénétration', alignment:'Alignement Marché', discriminatory:'Discriminatoire' };
+  const mults  = { luxury:'×2.2', penetration:'×1.05', alignment:'= prix marché', discriminatory:'variable par segment' };
+  const sp = strategyPrice(optimalPrice);
+
+  document.getElementById('strategy-impact').innerHTML = `
+    <div class="kpi-row">
+      <div class="kpi info"><div class="kpi-label">Stratégie</div><div class="kpi-value" style="font-size:1rem;">${labels[state.strategy]}</div></div>
+      <div class="kpi info"><div class="kpi-label">Facteur Appliqué</div><div class="kpi-value" style="font-size:1rem;">${mults[state.strategy]}</div></div>
+      <div class="kpi warning"><div class="kpi-label">Prix Stratégique Brut</div><div class="kpi-value">${sp.toLocaleString('fr-FR',{maximumFractionDigits:2})} ${cur}</div></div>
+      <div class="kpi success"><div class="kpi-label">Prix Final (avec type)</div><div class="kpi-value">${finalPrice().toLocaleString('fr-FR',{maximumFractionDigits:2})} ${cur}</div></div>
+    </div>
+    ${sp < minPrice ? `<div class="alert alert-danger">⛔ Le prix stratégique est inférieur au coût de production. Révisez vos paramètres.</div>` : ''}`;
+}
+
+function addSegment() { state.segments.push({ name: `Segment ${state.segments.length + 1}`, multiplier: 1.2 }); renderAll(); }
+function removeSegment(i) { if (state.segments.length > 1) { state.segments.splice(i, 1); renderAll(); } }
+
+// ── PAGE: PRICE TYPE ─────────────────────────────────────────
+function renderPriceType() {
+  document.querySelectorAll('#pricetype-options .option-card').forEach(el =>
+    el.classList.toggle('selected', el.dataset.pricetype === state.pricetype));
+
+  const { optimalPrice } = calcCosts();
+  const cur       = currency();
+  const stratBase = strategyPrice(optimalPrice);
+  const fp        = applyPriceType(stratBase);
+
+  const typeDesc = {
+    magic:         'Réduit le prix de 0,01 pour obtenir un prix en X,99 — très utilisé en e-commerce et SaaS.',
+    psychological: 'Place le prix juste en dessous d\'un palier symbolique (100, 500, 1 000...). Effet de "bon deal".',
+    rounded:       'Prix entier net, perçu comme plus sérieux et professionnel. Recommandé pour les offres B2B IT.',
+  }[state.pricetype];
+
+  const rows = [stratBase * 0.7, stratBase * 0.85, stratBase, stratBase * 1.1].map(p => {
+    const after = applyPriceType(p); const diff = after - p;
+    return `<tr>
+      <td>${p.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} ${cur}</td><td>→</td>
+      <td><strong>${after.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} ${cur}</strong></td>
+      <td style="color:${diff>=0?'var(--success)':'var(--danger)'};font-weight:600;">${diff>=0?'+':''}${diff.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} ${cur}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('price-transform').innerHTML = `
+    <div class="alert alert-info" style="margin-bottom:16px;">💡 ${typeDesc}</div>
+    <div style="display:flex;align-items:center;gap:32px;margin-bottom:20px;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div style="font-size:0.75rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Prix Stratégique Brut</div>
+        <div style="font-size:2rem;font-weight:800;color:var(--muted);">${stratBase.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} ${cur}</div>
+      </div>
+      <div style="font-size:2rem;color:var(--primary);">→</div>
+      <div style="text-align:center;">
+        <div style="font-size:0.75rem;color:var(--primary);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Prix Final Appliqué</div>
+        <div style="font-size:2.4rem;font-weight:900;color:var(--primary);">${fp.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} ${cur}</div>
+      </div>
+    </div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:8px;font-weight:700;">Exemples à différents niveaux de prix :</div>
+    <table class="segments-table"><thead><tr><th>Prix Brut</th><th></th><th>Après Transformation</th><th>Variation</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ── PAGE: POSITIONING ────────────────────────────────────────
+function renderPositioning() {
+  document.getElementById('lbl-x-left').textContent   = document.getElementById('axis-x-left').value;
+  document.getElementById('lbl-x-right').textContent  = document.getElementById('axis-x-right').value;
+  document.getElementById('lbl-y-top').textContent    = document.getElementById('axis-y-top').value;
+  document.getElementById('lbl-y-bottom').textContent = document.getElementById('axis-y-bottom').value;
+
+  document.getElementById('competitors-list').innerHTML = state.competitors.map((c, i) => `
+    <div class="competitor-row">
+      <input type="color" value="${c.color}" title="Couleur" oninput="state.competitors[${i}].color=this.value; renderPositioning();" />
+      <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+        <input type="text" value="${c.name}" placeholder="Nom du concurrent" oninput="state.competitors[${i}].name=this.value; renderPositioning();" />
+        <div style="display:flex;gap:6px;align-items:center;">
+          <label style="font-size:0.7rem;text-transform:none;letter-spacing:0;white-space:nowrap;">X (0–100)</label>
+          <input type="number" value="${c.x}" min="0" max="100" style="width:64px;" oninput="state.competitors[${i}].x=parseFloat(this.value)||50; renderPositioning();" />
+          <label style="font-size:0.7rem;text-transform:none;letter-spacing:0;white-space:nowrap;">Y (0–100)</label>
+          <input type="number" value="${c.y}" min="0" max="100" style="width:64px;" oninput="state.competitors[${i}].y=parseFloat(this.value)||50; renderPositioning();" />
+        </div>
+      </div>
+      <button class="btn-danger-sm" onclick="removeCompetitor(${i})" style="align-self:flex-start;">✕</button>
+    </div>`).join('');
+
+  drawPerceptualMap();
+  renderPositioningAnalysis();
+}
+
+function drawPerceptualMap() {
+  const wrap = document.getElementById('perceptual-canvas-wrap');
+  const canvas = document.getElementById('perceptual-canvas');
+  const W = wrap.clientWidth || 600;
+  const H = wrap.clientHeight || W * 0.56;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const pad = 48; const iW = W - pad * 2; const iH = H - pad * 2;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) {
+    const gx = pad + (iW / 4) * i; const gy = pad + (iH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(gx, pad); ctx.lineTo(gx, pad + iH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad, gy); ctx.lineTo(pad + iW, gy); ctx.stroke();
+  }
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(pad, H/2);   ctx.lineTo(pad+iW, H/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W/2, pad);   ctx.lineTo(W/2, pad+iH); ctx.stroke();
+  ctx.fillStyle = '#94a3b8';
+  ctx.beginPath(); ctx.moveTo(pad+iW+6,H/2); ctx.lineTo(pad+iW-6,H/2-5); ctx.lineTo(pad+iW-6,H/2+5); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(W/2,pad-6);    ctx.lineTo(W/2-5,pad+6);    ctx.lineTo(W/2+5,pad+6);    ctx.fill();
+
+  function plotDot(x100, y100, color, label, size = 10, isSelf = false) {
+    const cx = pad + (x100 / 100) * iW;
+    const cy = pad + ((100 - y100) / 100) * iH;
+    if (isSelf) {
+      ctx.beginPath(); ctx.arc(cx, cy, size+4, 0, Math.PI*2); ctx.fillStyle = color+'33'; ctx.fill();
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.PI/4); ctx.fillStyle = color;
+      ctx.fillRect(-size/2, -size/2, size, size); ctx.restore();
+    } else {
+      ctx.beginPath(); ctx.arc(cx, cy, size, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    }
+    ctx.font = isSelf ? 'bold 12px Segoe UI,sans-serif' : '11px Segoe UI,sans-serif';
+    ctx.fillStyle = color; ctx.textAlign = 'center';
+    const txtY = cy - size - 8;
+    ctx.fillText(label, cx, txtY < pad ? cy + size + 14 : txtY);
+  }
+
+  state.competitors.forEach(c => plotDot(c.x, c.y, c.color, c.name, 9, false));
+  plotDot(
+    parseFloat(document.getElementById('my-x').value) || 60,
+    parseFloat(document.getElementById('my-y').value) || 75,
+    '#2563eb', document.getElementById('my-name').value || 'Moi', 11, true
+  );
+}
+
+function renderPositioningAnalysis() {
+  const myX = parseFloat(document.getElementById('my-x').value) || 60;
+  const myY = parseFloat(document.getElementById('my-y').value) || 75;
+  if (state.competitors.length === 0) {
+    document.getElementById('positioning-analysis').innerHTML = '<p style="color:var(--muted)">Ajoutez des concurrents pour obtenir une analyse.</p>';
+    return;
+  }
+  const distances = state.competitors.map(c => ({
+    name: c.name,
+    dist: Math.sqrt(Math.pow(myX-c.x,2)+Math.pow(myY-c.y,2)).toFixed(1),
+    xDiff: (myX-c.x).toFixed(1), yDiff: (myY-c.y).toFixed(1),
+  })).sort((a,b) => a.dist - b.dist);
+  const closest = distances[0];
+  const xLabel = myX > 50 ? document.getElementById('axis-x-right').value : document.getElementById('axis-x-left').value;
+  const yLabel = myY > 50 ? document.getElementById('axis-y-top').value   : document.getElementById('axis-y-bottom').value;
+  document.getElementById('positioning-analysis').innerHTML = `
+    <div class="alert alert-info" style="margin-bottom:14px;">
+      📍 Votre entreprise se positionne en <strong>"${xLabel} / ${yLabel}"</strong>.
+      Le concurrent le plus proche est <strong>${closest.name}</strong> (distance : ${closest.dist} pts).
+    </div>
+    <table class="segments-table">
+      <thead><tr><th>Concurrent</th><th>Distance</th><th>Écart X</th><th>Écart Y</th></tr></thead>
+      <tbody>${distances.map(d=>`<tr>
+        <td>${d.name}</td><td>${d.dist} pts</td>
+        <td>${parseFloat(d.xDiff)>0?'+'+d.xDiff+' →':d.xDiff+' ←'} X</td>
+        <td>${parseFloat(d.yDiff)>0?'+'+d.yDiff+' ↑':d.yDiff+' ↓'} Y</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+function addCompetitor() {
+  const colors = ['#ef4444','#f97316','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ec4899'];
+  state.competitors.push({ name:`Concurrent ${state.competitors.length+1}`, x:Math.round(20+Math.random()*60), y:Math.round(20+Math.random()*60), color:colors[state.competitors.length%colors.length] });
+  renderPositioning();
+}
+function removeCompetitor(i) { state.competitors.splice(i,1); renderPositioning(); }
+
+// ── PAGE: ANSOFF ─────────────────────────────────────────────
+const ANSOFF = {
+  penetration: {
+    name:'Pénétration de Marché', icon:'📈', riskLabel:'Faible', riskBg:'#dcfce7', riskColor:'#166534', cannibalization:false,
+    pricingStrategy:'Pénétration / Alignement',
+    description:'Vendre davantage de vos produits/services <strong>existants</strong> sur votre <strong>marché actuel</strong>. Stratégie à faible risque — vous maîtrisez le produit et le marché.',
+    actions:['Réduire les prix pour conquérir des clients concurrents','Intensifier les actions marketing et relances commerciales','Programmes de fidélisation (contracts long terme, SLA premium)',"Augmenter la fréquence d'utilisation (nouvelles licences, upsell)",'Acquisitions de petits concurrents sur le même marché'],
+    pricing:"Prix compétitif ou agressif pour gagner des parts. Stratégie de pénétration ou d'alignement marché recommandée.",
+  },
+  'market-dev': {
+    name:'Développement de Marché', icon:'🌍', riskLabel:'Moyen', riskBg:'#fef9c3', riskColor:'#854d0e', cannibalization:false,
+    pricingStrategy:'Alignement / Premium selon marché',
+    description:'Introduire vos <strong>produits existants</strong> sur de <strong>nouveaux marchés</strong> (géographies, nouveaux secteurs, nouveaux canaux). Risque modéré — le produit est connu.',
+    actions:['Expansion géographique (nouvelles régions, pays)',"Ciblage de nouveaux secteurs d'activité (ex: santé, finance)",'Nouveaux canaux de distribution (revendeurs, marketplaces)','Localisation / adaptation légère de l\'offre','Partenariats stratégiques pour accéder au nouveau marché'],
+    pricing:"Prix à adapter au pouvoir d'achat du nouveau marché. Un prix d'entrée attractif peut accélérer l'adoption.",
+  },
+  'product-dev': {
+    name:'Développement de Produit', icon:'🔧', riskLabel:'Moyen', riskBg:'#dbeafe', riskColor:'#1e40af', cannibalization:true,
+    pricingStrategy:'Discriminatoire / Premium',
+    description:'Développer de <strong>nouvelles offres</strong> pour votre <strong>marché actuel</strong>. Risque de <strong>cannibalisation</strong> : les nouveaux produits peuvent réduire les ventes des anciens.',
+    actions:['Nouvelles fonctionnalités ou modules complémentaires (add-ons)',"Version Next-Gen remplaçant progressivement l'offre actuelle",'Bundles et packages enrichis (upsell naturel)','R&D sur innovations incrémentales demandées par les clients','Migration assistée des clients vers la nouvelle offre'],
+    pricing:'Tarification discriminatoire par version (Starter / Pro / Enterprise) pour éviter la cannibalisation. Prix premium si innovation différenciante.',
+  },
+  diversification: {
+    name:'Diversification', icon:'🎲', riskLabel:'Élevé', riskBg:'#fee2e2', riskColor:'#991b1b', cannibalization:false,
+    pricingStrategy:'Pénétration (lancement)',
+    description:"Lancer de <strong>nouveaux produits</strong> sur de <strong>nouveaux marchés</strong>. Stratégie la plus risquée — ni le produit ni le marché ne sont maîtrisés. Requiert ressources importantes.",
+    actions:["Diversification connexe (domaines proches du cœur de métier)",'Diversification conglomérale (nouveaux domaines sans lien)','Acquisitions stratégiques dans de nouveaux secteurs','Joint-ventures ou partenariats pour partager le risque','MVP et tests marché avant déploiement complet'],
+    pricing:"Prix de lancement bas (pénétration) pour forcer l'adoption, puis augmentation progressive. Valider le consentement à payer avant de fixer le prix définitif.",
+  },
+};
+
+function renderAnsoff() {
+  document.querySelectorAll('.ansoff-cell').forEach(el =>
+    el.classList.toggle('active', el.dataset.quadrant === state.ansoffQuadrant));
+  ['penetration','market-dev','product-dev','diversification'].forEach(q => {
+    const el = document.getElementById('dots-' + q);
+    if (el) el.innerHTML = state.ansoffInitiatives.filter(i=>i.quadrant===q).map(i=>`<div class="ansoff-dot" title="${i.name}"></div>`).join('');
+  });
+  renderAnsoffDetail();
+  renderAnsoffInitiativesList();
+  renderAnsoffRisk();
+}
+
+function renderAnsoffDetail() {
+  const d = ANSOFF[state.ansoffQuadrant]; if (!d) return;
+  document.getElementById('ansoff-detail').innerHTML = `
+    <div style="font-size:2rem;margin-bottom:8px;">${d.icon}</div>
+    <div style="font-weight:800;font-size:1rem;margin-bottom:6px;">${d.name}</div>
+    <div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:5px;">
+      <span class="tag" style="background:${d.riskBg};color:${d.riskColor};">Risque ${d.riskLabel}</span>
+      ${d.cannibalization?'<span class="tag tag-amber">⚠️ Cannibalisation</span>':''}
+    </div>
+    <p style="font-size:0.82rem;line-height:1.55;margin-bottom:12px;">${d.description}</p>
+    <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Actions Recommandées</div>
+    <ul style="font-size:0.79rem;line-height:1.5;padding-left:16px;margin-bottom:12px;">${d.actions.map(a=>`<li style="margin-bottom:5px;">${a}</li>`).join('')}</ul>
+    <div style="padding:10px 12px;background:#f0f9ff;border-left:3px solid var(--primary);border-radius:0 6px 6px 0;">
+      <div style="font-size:0.7rem;font-weight:700;color:var(--primary);text-transform:uppercase;margin-bottom:3px;">💰 Stratégie Tarifaire Liée</div>
+      <div style="font-size:0.8rem;font-weight:600;margin-bottom:3px;">${d.pricingStrategy}</div>
+      <div style="font-size:0.78rem;color:var(--muted);">${d.pricing}</div>
+    </div>`;
+}
+
+function renderAnsoffInitiativesList() {
+  const el = document.getElementById('ansoff-initiatives-list');
+  if (state.ansoffInitiatives.length === 0) { el.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;text-align:center;padding:20px 0;">Aucune initiative. Cliquez sur "+ Ajouter".</p>'; return; }
+  const qOpts = [['penetration','📈 Pénétration de Marché'],['market-dev','🌍 Développement de Marché'],['product-dev','🔧 Développement de Produit'],['diversification','🎲 Diversification']];
+  el.innerHTML = `<table class="segments-table">
+    <thead><tr><th>Initiative / Produit</th><th>Quadrant</th><th>Risque</th><th>Note</th><th></th></tr></thead>
+    <tbody>${state.ansoffInitiatives.map((ini,i)=>{
+      const d=ANSOFF[ini.quadrant];
+      const opts=qOpts.map(([v,l])=>`<option value="${v}"${ini.quadrant===v?' selected':''}>${l}</option>`).join('');
+      return `<tr>
+        <td><input type="text" value="${ini.name}" oninput="state.ansoffInitiatives[${i}].name=this.value; renderAnsoff();" /></td>
+        <td><select onchange="state.ansoffInitiatives[${i}].quadrant=this.value; renderAnsoff();" style="width:100%;">${opts}</select></td>
+        <td><span class="tag" style="background:${d.riskBg};color:${d.riskColor};">${d.riskLabel}</span>${d.cannibalization?'<span class="tag tag-amber" style="margin-left:3px;">⚠️ Cannibal.</span>':''}</td>
+        <td><input type="text" value="${ini.description}" placeholder="Note…" oninput="state.ansoffInitiatives[${i}].description=this.value;" /></td>
+        <td><button class="btn-danger-sm" onclick="removeAnsoffInitiative(${i})">✕</button></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function renderAnsoffRisk() {
+  const el = document.getElementById('ansoff-risk');
+  const byQ = {}; ['penetration','market-dev','product-dev','diversification'].forEach(q=>byQ[q]=state.ansoffInitiatives.filter(i=>i.quadrant===q));
+  const total = state.ansoffInitiatives.length;
+  let html = `<div class="kpi-row">
+    <div class="kpi success"><div class="kpi-label">📈 Pénétration</div><div class="kpi-value">${byQ['penetration'].length}</div></div>
+    <div class="kpi warning"><div class="kpi-label">🌍 Dev. Marché</div><div class="kpi-value">${byQ['market-dev'].length}</div></div>
+    <div class="kpi info"><div class="kpi-label">🔧 Dev. Produit</div><div class="kpi-value">${byQ['product-dev'].length}</div></div>
+    <div class="kpi danger"><div class="kpi-label">🎲 Diversification</div><div class="kpi-value">${byQ['diversification'].length}</div></div>
+  </div>`;
+  if (byQ['product-dev'].length>0) html+=`<div class="alert alert-warning" style="margin-top:4px;">⚠️ <strong>Risque de Cannibalisation :</strong> ${byQ['product-dev'].map(i=>`<strong>${i.name}</strong>`).join(', ')} cible(nt) le marché existant avec un nouveau produit. Utilisez une <strong>tarification discriminatoire</strong> pour protéger les revenus actuels.</div>`;
+  if (byQ['diversification'].length>0) html+=`<div class="alert alert-danger" style="margin-top:6px;">🔴 <strong>Exposition Élevée — Diversification :</strong> ${byQ['diversification'].length} initiative(s) sur marchés et produits inconnus. Budgets R&amp;D et validation marché importants nécessaires.</div>`;
+  if (total>0){const dominant=Object.entries(byQ).sort((a,b)=>b[1].length-a[1].length)[0][0];const d=ANSOFF[dominant];html+=`<div class="alert alert-info" style="margin-top:6px;">💡 <strong>Recommandation Principale :</strong> Portefeuille dominé par <strong>${d.icon} ${d.name}</strong>. ${d.pricing}</div>`;}
+  html+=`<div style="margin-top:16px;"><table class="synth-table"><thead><tr><th>Quadrant</th><th>Risque</th><th>Cannibalisation</th><th>Stratégie Tarifaire</th><th>Vos Initiatives</th></tr></thead><tbody>
+    ${Object.entries(ANSOFF).map(([q,d])=>`<tr style="${state.ansoffQuadrant===q?'background:#eff6ff;font-weight:600;':''}">
+      <td>${d.icon} ${d.name}</td>
+      <td><span class="tag" style="background:${d.riskBg};color:${d.riskColor};">${d.riskLabel}</span></td>
+      <td>${d.cannibalization?'<span class="tag tag-amber">⚠️ Oui</span>':'<span class="tag tag-green">Non</span>'}</td>
+      <td><span class="tag tag-blue">${d.pricingStrategy}</span></td>
+      <td>${byQ[q].length?byQ[q].map(i=>`<span class="tag tag-blue" style="margin:1px 2px;">${i.name}</span>`).join(''):'<span style="color:var(--muted);">—</span>'}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+  el.innerHTML = html;
+}
+
+function addAnsoffInitiative() { state.ansoffInitiatives.push({name:`Initiative ${state.ansoffInitiatives.length+1}`,quadrant:state.ansoffQuadrant||'penetration',description:''}); renderAnsoff(); }
+function removeAnsoffInitiative(i) { state.ansoffInitiatives.splice(i,1); renderAnsoff(); }
+
+// ── PAGE: SYNTHESIS ──────────────────────────────────────────
+function renderSynthesis() {
+  const { varCost, fixedCost, volume, margin, costPerUnit, minPrice, optimalPrice } = calcCosts();
+  const cur = currency(); const fp = finalPrice();
+  const margEff = ((fp-costPerUnit)/fp*100).toFixed(1);
+  const stratNames = {luxury:'Luxe / Premium',penetration:'Pénétration',alignment:'Alignement Marché',discriminatory:'Discriminatoire'};
+  const typeNames  = {magic:'Prix Magique (X,99)',psychological:'Prix Psychologique',rounded:'Prix Arrondi'};
+
+  document.getElementById('synth-kpis').innerHTML = `
+    <div class="kpi danger"><div class="kpi-label">Prix Minimum</div><div class="kpi-value">${minPrice.toLocaleString('fr-FR',{maximumFractionDigits:2})} ${cur}</div></div>
+    <div class="kpi warning"><div class="kpi-label">Prix Optimal</div><div class="kpi-value">${optimalPrice.toLocaleString('fr-FR',{maximumFractionDigits:2})} ${cur}</div></div>
+    <div class="kpi success"><div class="kpi-label">Prix Final</div><div class="kpi-value">${fp.toLocaleString('fr-FR',{maximumFractionDigits:2})} ${cur}</div></div>
+    <div class="kpi ${parseFloat(margEff)>=margin?'success':'warning'}"><div class="kpi-label">Marge Effective</div><div class="kpi-value">${margEff}%</div></div>
+    <div class="kpi info"><div class="kpi-label">CA Mensuel Estimé</div><div class="kpi-value">${(fp*volume).toLocaleString('fr-FR',{maximumFractionDigits:0})} ${cur}</div></div>`;
+
+  document.getElementById('synth-table').innerHTML = `
+    <thead><tr><th>Paramètre</th><th>Valeur</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Stratégie Tarifaire</td><td><span class="tag tag-blue">${stratNames[state.strategy]}</span></td><td>${{luxury:'Positionnement haut de gamme',penetration:'Conquête de parts de marché',alignment:"Compétitivité par l'alignement",discriminatory:'Segmentation de la clientèle'}[state.strategy]}</td></tr>
+      <tr><td>Type de Prix</td><td><span class="tag tag-purple">${typeNames[state.pricetype]}</span></td><td>${{magic:'Effet marketing attractif',psychological:'Franchissement psychologique de seuil',rounded:'Sérieux et clarté B2B'}[state.pricetype]}</td></tr>
+      <tr><td>Coût Variable Unitaire</td><td>${varCost.toFixed(2)} ${cur}</td><td>Coût direct par unité livrée</td></tr>
+      <tr><td>Coûts Fixes Mensuels</td><td>${fixedCost.toFixed(2)} ${cur}</td><td>Répartis sur ${volume} unités = ${(fixedCost/volume).toFixed(2)} ${cur}/u</td></tr>
+      <tr><td>Coût Complet Unitaire</td><td>${costPerUnit.toFixed(2)} ${cur}</td><td>Seuil de rentabilité absolue</td></tr>
+      <tr><td>Marge Souhaitée</td><td>${margin}%</td><td>Prix Optimal : ${optimalPrice.toFixed(2)} ${cur}</td></tr>
+      <tr><td><strong>Prix Final Recommandé</strong></td><td><strong style="color:var(--primary);font-size:1.1em;">${fp.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} ${cur}</strong></td><td>Marge effective : ${margEff}%</td></tr>
+    </tbody>`;
+
+  const recColor = fp>=optimalPrice?'var(--success)':fp>=minPrice?'var(--warning)':'var(--danger)';
+  document.getElementById('final-price-recommendation').innerHTML = `
+    <div style="text-align:center;padding:24px 0;">
+      <div style="font-size:0.8rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Prix Final Recommandé</div>
+      <div style="font-size:3.5rem;font-weight:900;color:${recColor};">${fp.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} ${cur}</div>
+      <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <span class="tag tag-blue">${stratNames[state.strategy]}</span>
+        <span class="tag tag-purple">${typeNames[state.pricetype]}</span>
+        <span class="tag ${parseFloat(margEff)>=margin?'tag-green':'tag-amber'}">Marge ${margEff}%</span>
+      </div>
+    </div>`;
+
+  let validHtml = fp>=optimalPrice
+    ? `<div class="alert alert-success">✅ <strong>Prix au-dessus de l'optimal :</strong> La marge de ${margin}% est atteinte et dépassée (${margEff}% effectif).</div>`
+    : fp>=minPrice
+    ? `<div class="alert alert-warning">⚠️ <strong>Prix entre minimum et optimal :</strong> Vous êtes rentable mais la marge souhaitée de ${margin}% n'est pas atteinte (seulement ${margEff}%).</div>`
+    : `<div class="alert alert-danger">⛔ <strong>Prix en dessous du minimum :</strong> Vous vendez à perte. Coût complet : ${fmt(costPerUnit)}. Ajustez votre stratégie.</div>`;
+
+  if (state.strategy==='discriminatory') {
+    const segRows = state.segments.map(s=>{const sp=applyPriceType(optimalPrice*s.multiplier);return`<li>${s.name} : <strong>${fmt(sp)}</strong> ${sp>=minPrice?'✅':'⛔ sous minimum'}</li>`;}).join('');
+    validHtml+=`<div class="alert alert-info" style="margin-top:10px;">🎚️ <strong>Tarification discriminatoire :</strong><ul style="margin-top:6px;padding-left:18px;">${segRows}</ul></div>`;
+  }
+  document.getElementById('synth-validation').innerHTML = validHtml;
+}
+
+// ── MAIN ─────────────────────────────────────────────────────
+const pageTitles = {
+  costs:'Coûts & Rentabilité', strategy:'Stratégie Tarifaire', pricetype:'Type de Prix',
+  positioning:'Carte Perceptuelle', ansoff:"Matrice d'Ansoff", synthesis:'Synthèse',
+};
+
+function renderAll() {
+  renderCosts(); renderStrategy(); renderPriceType(); renderSynthesis();
+  if (document.getElementById('page-positioning').classList.contains('active')) renderPositioning();
+  const sN={luxury:'Luxe',penetration:'Pénétration',alignment:'Alignement',discriminatory:'Discriminatoire'};
+  const tN={magic:'Magique',psychological:'Psychologique',rounded:'Arrondi'};
+  document.getElementById('topbar-summary').textContent = `${sN[state.strategy]} · ${tN[state.pricetype]}`;
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const page = item.dataset.page;
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('page-'+page).classList.add('active');
+    document.getElementById('page-title').textContent = pageTitles[page];
+    if (page==='positioning') renderPositioning();
+    if (page==='ansoff')      renderAnsoff();
+    if (page==='synthesis')   renderSynthesis();
+  });
+});
+
+['var-cost','fixed-cost','volume','margin','currency'].forEach(id =>
+  document.getElementById(id).addEventListener('input', renderAll));
+
+document.querySelectorAll('#strategy-options .option-card').forEach(card =>
+  card.addEventListener('click', () => { state.strategy = card.dataset.strategy; renderAll(); }));
+
+document.querySelectorAll('#pricetype-options .option-card').forEach(card =>
+  card.addEventListener('click', () => { state.pricetype = card.dataset.pricetype; renderAll(); }));
+
+['axis-x-left','axis-x-right','axis-y-top','axis-y-bottom','my-x','my-y','my-name'].forEach(id =>
+  document.getElementById(id).addEventListener('input', () => {
+    if (document.getElementById('page-positioning').classList.contains('active')) renderPositioning();
+  }));
+
+document.querySelectorAll('.ansoff-cell').forEach(cell =>
+  cell.addEventListener('click', () => { state.ansoffQuadrant = cell.dataset.quadrant; renderAnsoff(); }));
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('page-positioning').classList.contains('active')) drawPerceptualMap();
+});
+
+renderAll();
+renderAnsoff();
+</script>
+</body>
+</html>

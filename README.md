@@ -4,6 +4,101 @@ Outil web d'aide à la décision tarifaire pour une entreprise IT. Entièrement 
 
 ---
 
+## Architecture
+
+```
+prix-strategie/
+├── index.html                          ← démo frontend standalone
+├── css/ · js/ · partials/             ← sources frontend modulaires
+├── db/
+│   └── schema.sql                      ← schéma PostgreSQL complet
+└── src/main/java/com/prf/prixstrategie/
+    ├── PrixStrategieApplication.java
+    ├── entity/                         ← entités JPA
+    │   ├── PricingProject.java
+    │   ├── PricingCosts.java
+    │   ├── PricingStrategy.java
+    │   ├── PriceSegment.java
+    │   ├── PositioningConfig.java
+    │   ├── Competitor.java
+    │   ├── AnsoffInitiative.java
+    │   ├── StrategyType.java           ← enum
+    │   ├── PriceType.java              ← enum
+    │   └── AnsoffQuadrant.java         ← enum
+    ├── repository/                     ← Spring Data JPA
+    ├── dto/                            ← Java Records (request/response)
+    ├── service/                        ← logique métier (@Transactional)
+    └── controller/                     ← REST API /api/v1/...
+```
+
+---
+
+## Backend Spring Boot
+
+### Prérequis
+- Java 21
+- Maven 3.9+
+- PostgreSQL 15+ avec une base `prixstrategie`
+
+### Configuration `application.yml`
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/prixstrategie
+    username: postgres
+    password: <votre_mot_de_passe>
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+```
+
+### Initialiser la base de données
+
+```bash
+psql -U postgres -c "CREATE DATABASE prixstrategie;"
+psql -U postgres -d prixstrategie -f db/schema.sql
+```
+
+### Lancer le backend
+
+```bash
+mvn spring-boot:run
+# API disponible sur http://localhost:8080
+```
+
+### Endpoints REST (`/api/v1/`)
+
+| Méthode | URL | Description |
+|---------|-----|-------------|
+| `GET`    | `/projects` | Liste tous les projets |
+| `POST`   | `/projects` | Créer un projet |
+| `GET`    | `/projects/{id}` | Snapshot complet |
+| `PUT`    | `/projects/{id}` | Modifier nom/description |
+| `DELETE` | `/projects/{id}` | Supprimer (cascade) |
+| `GET/PUT` | `/projects/{id}/costs` | Coûts & marge (upsert) |
+| `GET/PUT` | `/projects/{id}/strategy` | Stratégie & type de prix |
+| `GET/PUT` | `/projects/{id}/positioning` | Config carte perceptuelle |
+| `GET/POST/PUT/DELETE` | `/projects/{id}/competitors/{cid}` | Concurrents |
+| `GET/POST/PUT/DELETE` | `/projects/{id}/segments/{sid}` | Segments tarifaires |
+| `GET/POST/PUT/DELETE` | `/projects/{id}/ansoff/{iid}` | Initiatives Ansoff |
+
+### Stack technique
+
+| Composant | Technologie |
+|-----------|-------------|
+| Framework | Spring Boot 3.3 |
+| Langage | Java 21 (Records pour les DTOs) |
+| Persistance | Spring Data JPA / Hibernate |
+| Base de données | PostgreSQL 15+ |
+| Migrations | Flyway |
+| Validation | Jakarta Bean Validation |
+| Build | Maven 3.9 |
+
+---
+
 ## Démo rapide (mode standalone)
 
 1. Ouvrir **`index.html`** directement dans un navigateur (double-clic ou *File → Open* dans Chrome/Firefox/Edge).
