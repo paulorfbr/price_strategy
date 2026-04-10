@@ -18,7 +18,9 @@ function calcCosts() {
   const { varCost, fixedCost, volume, margin } = getInputs();
   const costPerUnit  = varCost + fixedCost / volume;
   const minPrice     = costPerUnit;
-  const optimalPrice = costPerUnit * (1 + margin / 100);
+  // PRD §4.1: optimalPrice = costPerUnit / (1 − margin/100)
+  // This yields the price where effective margin equals the target margin.
+  const optimalPrice = margin >= 100 ? Infinity : costPerUnit / (1 - margin / 100);
   return { varCost, fixedCost, volume, margin, costPerUnit, minPrice, optimalPrice };
 }
 

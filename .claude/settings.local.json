@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "mcp__cachebro__read_file",
-      "mcp__cachebro__read_files"
+      "mcp__cachebro__read_files",
+      "Bash(powershell -NonInteractive -File \".specify/scripts/powershell/check-prerequisites.ps1\" -Json -PathsOnly)",
+      "Bash(powershell -NonInteractive -File \".specify/scripts/powershell/setup-plan.ps1\" -Json)",
+      "Bash(powershell -NonInteractive -File \".specify/integrations/claude/scripts/update-context.ps1\" -AgentType claude)",
+      "Bash(powershell -NonInteractive -File \".specify/scripts/powershell/check-prerequisites.ps1\" -Json)",
+      "Bash(powershell -NonInteractive -File \".specify/scripts/powershell/check-prerequisites.ps1\" -Json -RequireTasks -IncludeTasks)",
+      "Bash(mvn compile:*)",
+      "Bash(java:*)"
     ]
   }
 }
