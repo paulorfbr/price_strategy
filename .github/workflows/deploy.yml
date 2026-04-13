@@ -15,7 +15,7 @@ on:
         default: true
 
 env:
-  AWS_REGION: eu-west-1
+  AWS_REGION: eu-east-1
   ECR_REPOSITORY: prix-strategie
   ECS_CLUSTER: prix-strategie-cluster
   ECS_SERVICE: prix-strategie-service
