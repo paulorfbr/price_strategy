@@ -6,20 +6,6 @@ resource "aws_ecr_repository" "backend" {
 
   image_scanning_configuration { scan_on_push = true }
 
-  lifecycle_policy_json = <<-JSON
-    {
-      "rules": [{
-        "rulePriority": 1,
-        "description": "Keep last 10 images",
-        "selection": {
-          "tagStatus": "any",
-          "countType": "imageCountMoreThan",
-          "countNumber": 10
-        },
-        "action": { "type": "expire" }
-      }]
-    }
-  JSON
 }
 
 # Workaround: lifecycle_policy must be separate resource
