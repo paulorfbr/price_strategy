@@ -12,6 +12,12 @@ const state = {
     { name: 'Concurrent B', x: 80, y: 85, color: '#f97316' },
     { name: 'Concurrent C', x: 25, y: 40, color: '#8b5cf6' },
   ],
+  swot: {
+    strengths:     ['Expertise technique', 'Support client réactif'],
+    weaknesses:    ['Prix élevé', 'Notoriété faible'],
+    opportunities: ['Marché en croissance', 'Nouveaux secteurs cibles'],
+    threats:       ['Concurrence prix agressive', 'Nouveaux entrants'],
+  },
   ansoffQuadrant: 'penetration',
   ansoffInitiatives: [
     { name: 'Offre SaaS Core',      quadrant: 'penetration', description: '' },

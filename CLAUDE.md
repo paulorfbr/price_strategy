@@ -1,8 +1,10 @@
 ﻿# prix-strategie Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-10
+Auto-generated from all feature plans. Last updated: 2026-04-11
 
 ## Active Technologies
+- Java 21 (backend) · ES6+ Vanilla JS (frontend) + Spring Boot 3.3 · Spring Data JPA/Hibernate · Flyway · Jakarta Bean Validation (main)
+- PostgreSQL 15+ (optional backend) · in-memory `state` object (frontend) (main)
 
 - Java 21 (backend) · HTML5/CSS3/ES6+ vanilla JS (frontend) + Spring Boot 3.3 · Spring Data JPA/Hibernate · Flyway · (main)
 
@@ -57,6 +59,7 @@ psql -U postgres -d prixstrategie -f db/schema.sql
 - **SQL**: lowercase keywords; snake_case identifiers; explicit CHECK constraints for all business rules
 
 ## Recent Changes
+- main: Added Java 21 (backend) · ES6+ Vanilla JS (frontend) + Spring Boot 3.3 · Spring Data JPA/Hibernate · Flyway · Jakarta Bean Validation
 
 - main: Initial v1.0 plan — standalone HTML frontend + optional Spring Boot + PostgreSQL backend
 

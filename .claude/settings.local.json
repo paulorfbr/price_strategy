@@ -9,7 +9,10 @@
       "Bash(powershell -NonInteractive -File \".specify/scripts/powershell/check-prerequisites.ps1\" -Json)",
       "Bash(powershell -NonInteractive -File \".specify/scripts/powershell/check-prerequisites.ps1\" -Json -RequireTasks -IncludeTasks)",
       "Bash(mvn compile:*)",
-      "Bash(java:*)"
+      "Bash(java:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(mvn -version)",
+      "Bash(mvn test:*)"
     ]
   }
 }

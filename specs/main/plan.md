@@ -1,47 +1,60 @@
 # Implementation Plan: PrixStratégie v1.0
 
-**Branch**: `main` | **Date**: 2026-04-10 | **Spec**: `PRD.md`
-**Input**: Product Requirements Document at `/PRD.md` (no separate spec.md — PRD is authoritative)
+**Branch**: `main` | **Date**: 2026-04-10 | **Spec**: PRD.md  
+**Input**: Feature specification from `PRD.md` (pricing strategy tool for IT SMBs)
 
 ## Summary
 
-Build PrixStratégie, a six-page pricing decision tool for IT SMEs, in two
-delivery modes: a standalone `index.html` (zero dependencies, zero server) and
-an optional Spring Boot 3.3 + PostgreSQL 15+ backend for multi-project
-persistence. All price calculations MUST be real-time (< 50 ms). Seven business
-rules (R1–R7 in PRD §5) are non-negotiable and enforced in both frontend
-validation and backend constraints.
+Build a standalone HTML5 pricing-decision tool (primary deliverable: `index.html`) with six
+interconnected pages (Costs → Strategy → Price Type → Positioning → Ansoff → Synthesis),
+backed by an optional Spring Boot 3.3 + PostgreSQL REST API for multi-project persistence.
+All seven PRD business rules (R1–R7) must be enforced in real time with colour-coded alerts.
 
 ## Technical Context
 
-**Language/Version**: Java 21 (backend) · HTML5/CSS3/ES6+ vanilla JS (frontend)
-**Primary Dependencies**: Spring Boot 3.3 · Spring Data JPA/Hibernate · Flyway ·
-  Jakarta Bean Validation · Maven 3.9+
-**Storage**: PostgreSQL 15+ (backend mode); in-memory JS state (standalone mode)
-**Testing**: JUnit 5 + Spring Boot Test (backend) · Browser manual smoke tests (frontend)
-**Target Platform**: Modern browser (Chrome/Firefox/Edge/Safari, last 2 major versions)
-**Project Type**: Web application — standalone HTML + optional REST API backend
-**Performance Goals**: Recalculation < 50 ms after any user input; page load < 1 s
-**Constraints**: `index.html` fully offline-capable; WCAG AA contrast on all alerts;
-  `ddl-auto: validate` in non-local environments
-**Scale/Scope**: Single-tenant in standalone mode; multi-project via backend;
-  6 frontend pages · ~14 REST endpoints · 7 DB entities
+**Language/Version**: Java 21 (backend) · ES6+ Vanilla JS (frontend)  
+**Primary Dependencies**: Spring Boot 3.3 · Spring Data JPA/Hibernate · Flyway · Jakarta Bean Validation  
+**Storage**: PostgreSQL 15+ (optional backend) · in-memory `state` object (frontend)  
+**Testing**: JUnit 5 + Spring Boot Test (backend) · Manual browser smoke tests (frontend — no framework by constitution)  
+**Target Platform**: Any modern browser (Chrome/Firefox/Edge/Safari last 2 major) for frontend; Linux/macOS/Windows JVM for backend  
+**Project Type**: Web application — standalone frontend + optional REST backend  
+**Performance Goals**: All page recalculations within 50 ms of any user input (R7)  
+**Constraints**: Frontend must run with zero external dependencies from `file://` protocol · Backend uses `ddl-auto: validate`  
+**Scale/Scope**: Single-user tool for IT SMBs; backend supports multi-project persistence; no concurrent user scaling target for v1.0
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.*
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| I. Frontend Autonomy | ✅ Pass | `index.html` confirmed standalone in README; no npm or bundler present |
-| II. Real-Time State Sync | ✅ Pass | PRD R7 mandates global sync on every input; global `state` object defined |
-| III. Business Rules Inviolability | ✅ Pass | PRD §5 defines R1–R7 exhaustively; alert system (🔴/🟡/🟢) specified |
-| IV. Database Integrity at Source | ✅ Pass | `db/schema.sql` defines CHECK constraints, CASCADE, trigger; Flyway configured |
-| V. Simplicity Over Abstraction | ✅ Pass | Vanilla JS frontend; standard Spring Boot backend; no extra layers |
-| Technology Constraints | ✅ Pass | Java 21, Spring Boot 3.3, Maven 3.9, PostgreSQL 15+, Flyway all match constitution |
-| Quality Gates | ✅ Pass | PRD formulas in §4 are authoritative; DTOs use Java Records per README |
+| I. Frontend Autonomy | PASS | `index.html` is self-contained; no npm/CDN/bundler; modular `css/`+`js/`+`partials/` for dev only |
+| II. Real-Time State Sync | PASS | Global `state` object is single source of truth; all inputs trigger `calcCosts()` + full re-render within 50 ms |
+| III. Business Rules Inviolability | PASS | R1–R7 enforced; violations surface as 🔴/🟡/🟢 colour-coded alerts (no silent bypass) |
+| IV. Database Integrity at Source | PASS | All constraints in PostgreSQL schema (`CHECK`, `NOT NULL`, `ON DELETE CASCADE`, trigger); Flyway migrations; `ddl-auto: validate` |
+| V. Simplicity Over Abstraction | PASS | No framework, no extra layers; standard Spring Boot idioms; no QueryDSL/jOOQ; 3-similar-lines rule applied |
 
-**No gate violations. Phase 0 research authorized.**
+**Technology Constraints compliance**:
+- Frontend runtime: HTML5 · CSS3 · ES6+ vanilla JS ✓
+- Frontend distribution: single `index.html` ✓
+- Backend: Java 21 records for DTOs ✓
+- Framework: Spring Boot 3.3 standard idioms ✓
+- Build: Maven 3.9+ ✓
+- Persistence: Spring Data JPA/Hibernate ✓
+- Database: PostgreSQL 15+ ✓
+- Migrations: Flyway (timestamp-prefixed `V{YYYYMMDD}{seq}__*.sql`) ✓
+- REST base path: `/api/v1/` ✓
+- HTTP status codes: 200/201/204/400/404 only ✓
+
+**Quality Gates pre-design**:
+1. Business rule compliance — formulas from PRD §4 locked in `utils.js` (`calcCosts`, `strategyPrice`, `applyPriceType`) ✓
+2. Schema-first changes — `db/schema.sql` delivered as Flyway `V20260410001__initial_schema.sql` ✓
+3. DTO validation — Java Records + Jakarta Bean Validation on all request bodies ✓
+4. Standalone verification — `index.html` opens directly in browser ✓
+5. Alert coverage — R1–R7 produce visible alerts ✓
+6. No trailing state — removing competitor/segment/initiative removes derived displays immediately ✓
+
+**Complexity Tracking**: No violations — no additional entries required.
 
 ## Project Structure
 
@@ -49,32 +62,32 @@ validation and backend constraints.
 
 ```text
 specs/main/
-├── plan.md          ← this file
-├── research.md      ← Phase 0 output
-├── data-model.md    ← Phase 1 output
-├── quickstart.md    ← Phase 1 output
+├── plan.md              # This file (/speckit-plan command output)
+├── research.md          # Phase 0 output — 5 decisions resolved
+├── data-model.md        # Phase 1 output — 6 entities + frontend state model
+├── quickstart.md        # Phase 1 output — setup + smoke tests
 ├── contracts/
-│   └── rest-api.md  ← Phase 1 output
-└── tasks.md         ← Phase 2 output (/speckit-tasks command)
+│   └── rest-api.md      # Phase 1 output — full REST contract
+└── tasks.md             # Phase 2 output (/speckit-tasks command)
 ```
 
 ### Source Code (repository root)
 
 ```text
-index.html                            ← standalone frontend (primary deliverable)
+index.html                               ← primary deliverable (self-contained)
 css/
-└── styles.css                        ← CSS variables and all rules
+└── styles.css                           ← CSS variables + all rules
 js/
-├── state.js                          ← global state object
-├── utils.js                          ← calcCosts(), strategyPrice(), applyPriceType(), finalPrice()
-├── main.js                           ← navigation, initApp(), event listeners
-└── pages/
-    ├── costs.js
-    ├── strategy.js
-    ├── pricetype.js
-    ├── positioning.js
-    ├── ansoff.js
-    └── synthesis.js
+├── state.js                             ← global state object (single source of truth)
+├── utils.js                             ← calcCosts(), strategyPrice(), applyPriceType()
+└── main.js                              ← navigation, initApp(), event listeners
+js/pages/
+├── costs.js
+├── strategy.js
+├── pricetype.js
+├── positioning.js
+├── ansoff.js
+└── synthesis.js
 partials/
 ├── page-costs.html
 ├── page-strategy.html
@@ -83,28 +96,24 @@ partials/
 ├── page-ansoff.html
 └── page-synthesis.html
 db/
-└── schema.sql                        ← PostgreSQL schema (source of truth for migrations)
+└── schema.sql                           ← PostgreSQL schema (source of truth for Flyway V1)
 src/main/java/com/prf/prixstrategie/
-├── PrixStrategieApplication.java
-├── entity/                           ← JPA entities + enums
-├── repository/                       ← Spring Data JPA
-├── dto/                              ← Java Records
-├── service/                          ← @Transactional business logic
-└── controller/                       ← REST controllers (/api/v1/...)
+├── entity/                              ← JPA entities + enums (StrategyType, PriceType, AnsoffQuadrant)
+├── repository/                          ← Spring Data JPA repositories
+├── dto/                                 ← Java Records (request + response)
+├── service/                             ← @Transactional business logic
+└── controller/                          ← REST controllers under /api/v1/
 src/main/resources/
-├── application.yml
-└── db/migration/                     ← Flyway migrations (V1__initial_schema.sql etc.)
-src/test/java/com/prf/prixstrategie/  ← JUnit 5 tests
+├── application.yml                      ← Spring Boot config (ddl-auto: validate)
+└── db/migration/
+    └── V20260410001__initial_schema.sql ← Flyway V1 (copy of db/schema.sql)
+src/test/java/com/prf/prixstrategie/     ← JUnit 5 + Spring Boot Test
 ```
 
-**Structure Decision**: Web application with independent frontend and optional backend.
-Frontend is the primary deliverable; backend is additive and does not break the
-standalone frontend.
+**Structure Decision**: Web application layout — standalone `index.html` as primary delivery;
+Spring Boot backend in `src/` as secondary. Both share the same repository with no submodule
+or monorepo tooling (Principle V).
 
 ## Complexity Tracking
 
-> No constitution violations — table intentionally empty.
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| — | — | — |
+> No constitution violations — table empty by design.

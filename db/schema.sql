@@ -1,15 +1,12 @@
 -- ============================================================
 --  PrixStratégie — PostgreSQL Schema
+--  Source of truth for Flyway V1 migration.
+--  Enums stored as VARCHAR + CHECK for Hibernate @Enumerated(STRING)
+--  compatibility (no native PG enum types).
 -- ============================================================
 
 -- Extensions
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";  -- gen_random_uuid()
-
--- ── Enums ────────────────────────────────────────────────────
-
-CREATE TYPE strategy_type AS ENUM ('luxury', 'penetration', 'alignment', 'discriminatory');
-CREATE TYPE pricetype_type AS ENUM ('magic', 'psychological', 'rounded');
-CREATE TYPE ansoff_quadrant AS ENUM ('penetration', 'market-dev', 'product-dev', 'diversification');
 
 -- ── Helper: auto-update updated_at ───────────────────────────
 
@@ -40,22 +37,24 @@ CREATE TRIGGER trg_pricing_project_updated_at
 --  Cost inputs and currency. 1:1 with pricing_project.
 
 CREATE TABLE pricing_costs (
-  project_id      UUID         PRIMARY KEY REFERENCES pricing_project(id) ON DELETE CASCADE,
+  project_id      UUID          PRIMARY KEY REFERENCES pricing_project(id) ON DELETE CASCADE,
   variable_cost   NUMERIC(12,2) NOT NULL DEFAULT 0    CHECK (variable_cost   >= 0),
   fixed_cost      NUMERIC(12,2) NOT NULL DEFAULT 0    CHECK (fixed_cost      >= 0),
-  volume          INTEGER       NOT NULL DEFAULT 1     CHECK (volume          >  0),
-  target_margin   NUMERIC(5,2)  NOT NULL DEFAULT 30   CHECK (target_margin   BETWEEN 0 AND 100),  -- %
+  volume          INTEGER       NOT NULL DEFAULT 1    CHECK (volume          >  0),
+  target_margin   NUMERIC(5,2)  NOT NULL DEFAULT 30   CHECK (target_margin   >= 0 AND target_margin < 100),
   currency        CHAR(3)       NOT NULL DEFAULT 'EUR',
-  alignment_price NUMERIC(12,2)                       CHECK (alignment_price >= 0)  -- nullable; used only for alignment strategy
+  alignment_price NUMERIC(12,2)                       CHECK (alignment_price >= 0)
 );
 
 -- ── 3. pricing_strategy ──────────────────────────────────────
---  Active strategy and price-type choices. 1:1 with pricing_project.
+--  strategy and pricetype stored as VARCHAR (Hibernate EnumType.STRING).
 
 CREATE TABLE pricing_strategy (
-  project_id UUID          PRIMARY KEY REFERENCES pricing_project(id) ON DELETE CASCADE,
-  strategy   strategy_type NOT NULL DEFAULT 'luxury',
-  pricetype  pricetype_type NOT NULL DEFAULT 'magic'
+  project_id UUID        PRIMARY KEY REFERENCES pricing_project(id) ON DELETE CASCADE,
+  strategy   VARCHAR(20) NOT NULL DEFAULT 'luxury'
+               CHECK (strategy IN ('luxury','penetration','alignment','discriminatory')),
+  pricetype  VARCHAR(20) NOT NULL DEFAULT 'magic'
+               CHECK (pricetype IN ('magic','psychological','rounded'))
 );
 
 -- ── 4. price_segment ─────────────────────────────────────────
@@ -94,7 +93,7 @@ CREATE TABLE competitor (
   name       TEXT     NOT NULL,
   position_x SMALLINT NOT NULL DEFAULT 50 CHECK (position_x BETWEEN 0 AND 100),
   position_y SMALLINT NOT NULL DEFAULT 50 CHECK (position_y BETWEEN 0 AND 100),
-  color      CHAR(7)  NOT NULL DEFAULT '#ef4444',  -- hex RGB
+  color      CHAR(7)  NOT NULL DEFAULT '#ef4444',
   sort_order SMALLINT NOT NULL DEFAULT 0
 );
 
@@ -102,15 +101,17 @@ CREATE INDEX idx_competitor_project ON competitor(project_id);
 
 -- ── 7. ansoff_initiative ─────────────────────────────────────
 --  Strategic initiatives classified by Ansoff quadrant.
+--  quadrant stored as VARCHAR (Hibernate EnumType.STRING; API serializes with hyphens via @JsonValue).
 
 CREATE TABLE ansoff_initiative (
-  id          UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
-  project_id  UUID            NOT NULL REFERENCES pricing_project(id) ON DELETE CASCADE,
-  name        TEXT            NOT NULL,
-  quadrant    ansoff_quadrant NOT NULL DEFAULT 'penetration',
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id  UUID        NOT NULL REFERENCES pricing_project(id) ON DELETE CASCADE,
+  name        TEXT        NOT NULL,
+  quadrant    VARCHAR(20) NOT NULL DEFAULT 'penetration'
+                CHECK (quadrant IN ('penetration','market_dev','product_dev','diversification')),
   description TEXT,
-  sort_order  SMALLINT        NOT NULL DEFAULT 0,
-  created_at  TIMESTAMPTZ     NOT NULL DEFAULT now()
+  sort_order  SMALLINT    NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_ansoff_initiative_project  ON ansoff_initiative(project_id);
@@ -132,7 +133,6 @@ SELECT
   c.alignment_price,
   s.strategy,
   s.pricetype,
-  -- unit cost, optimal price, minimum price
   ROUND((c.fixed_cost / NULLIF(c.volume, 0)) + c.variable_cost, 2)                        AS unit_cost,
   ROUND(((c.fixed_cost / NULLIF(c.volume, 0)) + c.variable_cost)
         / NULLIF(1 - c.target_margin / 100, 0), 2)                                        AS optimal_price,

@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS pricing_costs (
 --  strategy and pricetype stored as VARCHAR (Hibernate EnumType.STRING)
 
 CREATE TABLE IF NOT EXISTS pricing_strategy (
-  project_id VARCHAR(36)  PRIMARY KEY REFERENCES pricing_project(id) ON DELETE CASCADE,
+  project_id UUID         PRIMARY KEY REFERENCES pricing_project(id) ON DELETE CASCADE,
   strategy   VARCHAR(20)  NOT NULL DEFAULT 'luxury'
                CHECK (strategy IN ('luxury','penetration','alignment','discriminatory')),
   pricetype  VARCHAR(20)  NOT NULL DEFAULT 'magic'
@@ -69,7 +69,7 @@ CREATE INDEX IF NOT EXISTS idx_price_segment_project ON price_segment(project_id
 -- ── 5. positioning_config ────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS positioning_config (
-  project_id    VARCHAR(36) PRIMARY KEY REFERENCES pricing_project(id) ON DELETE CASCADE,
+  project_id    UUID        PRIMARY KEY REFERENCES pricing_project(id) ON DELETE CASCADE,
   axis_x_left   TEXT        NOT NULL DEFAULT 'Bas Prix',
   axis_x_right  TEXT        NOT NULL DEFAULT 'Haut Prix',
   axis_y_top    TEXT        NOT NULL DEFAULT 'Haute Qualité',

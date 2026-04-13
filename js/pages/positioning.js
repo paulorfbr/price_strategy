@@ -1,3 +1,46 @@
+const SWOT_META = {
+  strengths:     { label: 'Forces',       icon: '💪', bg: '#f0fdf4', border: '#16a34a', color: '#15803d' },
+  weaknesses:    { label: 'Faiblesses',   icon: '⚠️', bg: '#fff5f5', border: '#dc2626', color: '#b91c1c' },
+  opportunities: { label: 'Opportunités', icon: '🚀', bg: '#eff6ff', border: '#2563eb', color: '#1d4ed8' },
+  threats:       { label: 'Menaces',      icon: '🛡️', bg: '#fffbeb', border: '#d97706', color: '#b45309' },
+};
+
+function renderSwot() {
+  const el = document.getElementById('swot-grid');
+  if (!el) return;
+  el.innerHTML = Object.entries(SWOT_META).map(([key, meta]) => `
+    <div style="border:2px solid ${meta.border};border-radius:8px;padding:14px;background:${meta.bg};">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-weight:700;font-size:0.88rem;color:${meta.color};">${meta.icon} ${meta.label}</div>
+        <button class="btn btn-outline btn-sm" onclick="addSwotItem('${key}')">+ Ajouter</button>
+      </div>
+      <div id="swot-${key}">
+        ${(state.swot[key] || []).map((item, i) => `
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px;">
+            <span style="color:${meta.color};font-weight:700;">•</span>
+            <input type="text" value="${item.replace(/"/g,'&quot;')}" style="flex:1;font-size:0.82rem;"
+                   oninput="state.swot['${key}'][${i}]=this.value;" />
+            <button class="btn-danger-sm" onclick="removeSwotItem('${key}',${i})">✕</button>
+          </div>`).join('')}
+        ${(state.swot[key] || []).length === 0
+          ? `<p style="color:var(--muted);font-size:0.8rem;font-style:italic;margin:4px 0 0;">Aucun élément.</p>`
+          : ''}
+      </div>
+    </div>`).join('');
+}
+
+function addSwotItem(key) {
+  state.swot[key].push('');
+  renderSwot();
+  const inputs = document.querySelectorAll('#swot-' + key + ' input');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+function removeSwotItem(key, i) {
+  state.swot[key].splice(i, 1);
+  renderSwot();
+}
+
 function renderPositioning() {
   document.getElementById('lbl-x-left').textContent   = document.getElementById('axis-x-left').value;
   document.getElementById('lbl-x-right').textContent  = document.getElementById('axis-x-right').value;
@@ -26,6 +69,7 @@ function renderPositioning() {
 
   drawPerceptualMap();
   renderPositioningAnalysis();
+  renderSwot();
 }
 
 function drawPerceptualMap() {

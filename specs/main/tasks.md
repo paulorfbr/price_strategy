@@ -26,11 +26,11 @@ Each story maps to one page of the application and is independently completable.
 **Purpose**: Verify project skeleton, configure build, and wire the Flyway migration
 so the backend database matches the schema source of truth.
 
-- [ ] T001 Verify project directory layout matches `specs/main/plan.md` source structure (index.html · css/ · js/ · partials/ · db/ · src/)
-- [ ] T002 Create Flyway migration `src/main/resources/db/migration/V20260410001__initial_schema.sql` by copying `db/schema.sql` content
-- [ ] T003 [P] Configure `src/main/resources/application.yml` with datasource, `ddl-auto: validate`, and Flyway settings per `specs/main/quickstart.md`
-- [ ] T004 [P] Add `WebMvcConfigurer` CORS bean in `src/main/java/com/prf/prixstrategie/config/CorsConfig.java` allowing `http://localhost:*`
-- [ ] T005 [P] Verify `pom.xml` declares Java 21, Spring Boot 3.3, Spring Data JPA, Flyway, Jakarta Validation, and PostgreSQL driver dependencies
+- [x] T001 Verify project directory layout matches `specs/main/plan.md` source structure (index.html · css/ · js/ · partials/ · db/ · src/)
+- [x] T002 Create Flyway migration `src/main/resources/db/migration/V20260410001__initial_schema.sql` by copying `db/schema.sql` content
+- [x] T003 [P] Configure `src/main/resources/application.yml` with datasource, `ddl-auto: validate`, and Flyway settings per `specs/main/quickstart.md`
+- [x] T004 [P] Add `WebMvcConfigurer` CORS bean in `src/main/java/com/prf/prixstrategie/config/CorsConfig.java` allowing `http://localhost:*`
+- [x] T005 [P] Verify `pom.xml` declares Java 21, Spring Boot 3.3, Spring Data JPA, Flyway, Jakarta Validation, and PostgreSQL driver dependencies
 
 ---
 
@@ -43,23 +43,23 @@ plus JPA entity layer that ALL backend controllers depend on.
 
 ### Frontend Foundations
 
-- [ ] T006 Implement `js/state.js` — global `state` object with all fields from `specs/main/data-model.md` (Frontend State Model section): variableCost, fixedCost, volume, targetMargin, currency, alignmentPrice, strategy, pricetype, axis config, myX/myY/myName, segments[], competitors[], ansoffInitiatives[]
-- [ ] T007 Implement `calcCosts(state)` in `js/utils.js` — returns `{ unitCost, minPrice, optimalPrice }` using PRD §4.1 formulas: `unitCost = variableCost + fixedCost/volume`, `minPrice = unitCost`, `optimalPrice = unitCost / (1 − targetMargin/100)`; enforce R5 (volume > 0) and R6 (margin < 100)
-- [ ] T008 Implement `strategyPrice(state, optimalPrice)` in `js/utils.js` — returns strategic price per PRD §4.2: luxury ×2.2, penetration ×1.05, alignment = alignmentPrice (R4: require non-null), discriminatory = optimalPrice (base for segments)
-- [ ] T009 Implement `applyPriceType(price, pricetype)` in `js/utils.js` — returns transformed price per PRD §4.3 exact formulas: magic (`floor(price) − 0.01`), psychological (threshold array lookup `−3`), rounded (magnitude-step rounding)
-- [ ] T010 Implement `finalPrice(state)` in `js/utils.js` — returns `applyPriceType(strategyPrice(state, optimalPrice), state.pricetype)`; enforce R2 (strategy first, then type)
-- [ ] T011 Implement `js/main.js` — `initApp()` bootstrapping, page navigation (show/hide `.page` sections), global `input` event listener on `document` that calls `renderAll()` on every state change (R7 — global sync)
+- [x] T006 Implement `js/state.js` — global `state` object with all fields from `specs/main/data-model.md` (Frontend State Model section): variableCost, fixedCost, volume, targetMargin, currency, alignmentPrice, strategy, pricetype, axis config, myX/myY/myName, segments[], competitors[], ansoffInitiatives[]
+- [x] T007 Implement `calcCosts(state)` in `js/utils.js` — returns `{ unitCost, minPrice, optimalPrice }` using PRD §4.1 formulas: `unitCost = variableCost + fixedCost/volume`, `minPrice = unitCost`, `optimalPrice = unitCost / (1 − targetMargin/100)`; enforce R5 (volume > 0) and R6 (margin < 100)
+- [x] T008 Implement `strategyPrice(state, optimalPrice)` in `js/utils.js` — returns strategic price per PRD §4.2: luxury ×2.2, penetration ×1.05, alignment = alignmentPrice (R4: require non-null), discriminatory = optimalPrice (base for segments)
+- [x] T009 Implement `applyPriceType(price, pricetype)` in `js/utils.js` — returns transformed price per PRD §4.3 exact formulas: magic (`floor(price) − 0.01`), psychological (threshold array lookup `−3`), rounded (magnitude-step rounding)
+- [x] T010 Implement `finalPrice(state)` in `js/utils.js` — returns `applyPriceType(strategyPrice(state, optimalPrice), state.pricetype)`; enforce R2 (strategy first, then type)
+- [x] T011 Implement `js/main.js` — `initApp()` bootstrapping, page navigation (show/hide `.page` sections), global `input` event listener on `document` that calls `renderAll()` on every state change (R7 — global sync)
 
 ### Backend Entity Layer
 
-- [ ] T012 [P] Implement `PricingProject.java` entity with `id`, `name`, `description`, `createdAt`, `updatedAt`; `@PreUpdate` hook for `updatedAt`; `@OneToOne(cascade=ALL)` to costs, strategy, positioning; `@OneToMany(cascade=ALL, orphanRemoval=true)` to segments, competitors, initiatives
-- [ ] T013 [P] Implement `PricingCosts.java` entity per `specs/main/data-model.md` — all columns with `@Column` constraints; `@OneToOne(mappedBy="costs")` back-reference
-- [ ] T014 [P] Implement `PricingStrategy.java` entity — `strategy VARCHAR`, `priceType VARCHAR`; `@Enumerated(EnumType.STRING)` for `StrategyType` and `PriceType` enums in `entity/` package
-- [ ] T015 [P] Implement `PositioningConfig.java` entity — axis labels, `myX`, `myY`, `myName`; SMALLINT CHECK 0–100 reflected as `@Column(columnDefinition=...)`
-- [ ] T016 [P] Implement `PriceSegment.java`, `Competitor.java`, `AnsoffInitiative.java` entities per data-model.md; include `sortOrder` field on all three
-- [ ] T017 [P] Implement `StrategyType.java`, `PriceType.java`, `AnsoffQuadrant.java` enums with values matching `specs/main/contracts/rest-api.md` validation constraints
-- [ ] T018 Implement Spring Data JPA repositories: `PricingProjectRepository`, `PricingCostsRepository`, `PricingStrategyRepository`, `PositioningConfigRepository`, `PriceSegmentRepository`, `CompetitorRepository`, `AnsoffInitiativeRepository` in `repository/` package
-- [ ] T019 Implement `ProjectService.java` in `service/` — `@Transactional` create method that creates project + default pricing_costs + pricing_strategy + positioning_config + 3 default segments (Starter ×0.70, Pro ×1.00, Enterprise ×1.60); delete method (cascade handles children)
+- [x] T012 [P] Implement `PricingProject.java` entity with `id`, `name`, `description`, `createdAt`, `updatedAt`; `@PreUpdate` hook for `updatedAt`; `@OneToOne(cascade=ALL)` to costs, strategy, positioning; `@OneToMany(cascade=ALL, orphanRemoval=true)` to segments, competitors, initiatives
+- [x] T013 [P] Implement `PricingCosts.java` entity per `specs/main/data-model.md` — all columns with `@Column` constraints; `@OneToOne(mappedBy="costs")` back-reference
+- [x] T014 [P] Implement `PricingStrategy.java` entity — `strategy VARCHAR`, `priceType VARCHAR`; `@Enumerated(EnumType.STRING)` for `StrategyType` and `PriceType` enums in `entity/` package
+- [x] T015 [P] Implement `PositioningConfig.java` entity — axis labels, `myX`, `myY`, `myName`; SMALLINT CHECK 0–100 reflected as `@Column(columnDefinition=...)`
+- [x] T016 [P] Implement `PriceSegment.java`, `Competitor.java`, `AnsoffInitiative.java` entities per data-model.md; include `sortOrder` field on all three
+- [x] T017 [P] Implement `StrategyType.java`, `PriceType.java`, `AnsoffQuadrant.java` enums with values matching `specs/main/contracts/rest-api.md` validation constraints
+- [x] T018 Implement Spring Data JPA repositories: `PricingProjectRepository`, `PricingCostsRepository`, `PricingStrategyRepository`, `PositioningConfigRepository`, `PriceSegmentRepository`, `CompetitorRepository`, `AnsoffInitiativeRepository` in `repository/` package
+- [x] T019 Implement `ProjectService.java` in `service/` — `@Transactional` create method that creates project + default pricing_costs + pricing_strategy + positioning_config + 3 default segments (Starter ×0.70, Pro ×1.00, Enterprise ×1.60); delete method (cascade handles children)
 
 **Checkpoint**: Foundation ready — all user stories can now begin in parallel.
 
@@ -76,17 +76,17 @@ plus JPA entity layer that ALL backend controllers depend on.
 
 ### Frontend — US1
 
-- [ ] T020 [US1] Implement `partials/page-costs.html` — 5 input fields (variableCost, fixedCost, volume, targetMargin, currency selector EUR/USD/GBP/CHF) wired to `state` via `id` attributes; layout per PRD §4.1
-- [ ] T021 [US1] Implement `js/pages/costs.js` — `renderCosts()` function: calls `calcCosts(state)`, renders 5 KPI cards (Coût Variable, Coût Complet, Prix Minimum, Prix Optimal, Prix Final), draws price bar with coloured zones, displays 🔴/🟡/🟢 alert per R1 threshold logic
-- [ ] T022 [US1] Wire `renderCosts()` into `js/main.js` `renderAll()` and register it for the "Coûts" navigation tab
-- [ ] T023 [US1] Embed `page-costs.html` content and `costs.js` logic inline in `index.html` standalone section (preserve R1 alert, price bar, and all 5 KPIs)
+- [x] T020 [US1] Implement `partials/page-costs.html` — 5 input fields (variableCost, fixedCost, volume, targetMargin, currency selector EUR/USD/GBP/CHF) wired to `state` via `id` attributes; layout per PRD §4.1
+- [x] T021 [US1] Implement `js/pages/costs.js` — `renderCosts()` function: calls `calcCosts(state)`, renders 5 KPI cards (Coût Variable, Coût Complet, Prix Minimum, Prix Optimal, Prix Final), draws price bar with coloured zones, displays 🔴/🟡/🟢 alert per R1 threshold logic
+- [x] T022 [US1] Wire `renderCosts()` into `js/main.js` `renderAll()` and register it for the "Coûts" navigation tab
+- [x] T023 [US1] Embed `page-costs.html` content and `costs.js` logic inline in `index.html` standalone section (preserve R1 alert, price bar, and all 5 KPIs)
 
 ### Backend — US1
 
-- [ ] T024 [P] [US1] Implement `CostsRequest.java` Java Record in `dto/` with Jakarta Validation: `@NotNull`, `@DecimalMin("0")` on variableCost/fixedCost, `@Min(1)` on volume, `@DecimalMin("0") @DecimalMax(value="100", inclusive=false)` on targetMargin
-- [ ] T025 [P] [US1] Implement `CostsResponse.java` Java Record in `dto/`
-- [ ] T026 [US1] Implement `CostsService.java` in `service/` — `@Transactional` `upsert(projectId, CostsRequest)` method; validate R4 (alignmentPrice required when strategy=alignment via cross-field check)
-- [ ] T027 [US1] Implement `CostsController.java` in `controller/` — `GET /api/v1/projects/{id}/costs` and `PUT /api/v1/projects/{id}/costs` per `specs/main/contracts/rest-api.md`
+- [x] T024 [P] [US1] Implement `CostsRequest.java` Java Record in `dto/` with Jakarta Validation: `@NotNull`, `@DecimalMin("0")` on variableCost/fixedCost, `@Min(1)` on volume, `@DecimalMin("0") @DecimalMax(value="100", inclusive=false)` on targetMargin
+- [x] T025 [P] [US1] Implement `CostsResponse.java` Java Record in `dto/`
+- [x] T026 [US1] Implement `CostsService.java` in `service/` — `@Transactional` `upsert(projectId, CostsRequest)` method; validate R4 (alignmentPrice required when strategy=alignment via cross-field check)
+- [x] T027 [US1] Implement `CostsController.java` in `controller/` — `GET /api/v1/projects/{id}/costs` and `PUT /api/v1/projects/{id}/costs` per `specs/main/contracts/rest-api.md`
 
 **Checkpoint**: User Story 1 fully functional and independently testable.
 
@@ -103,18 +103,18 @@ their computed final price and status badge.
 
 ### Frontend — US2
 
-- [ ] T028 [US2] Implement `partials/page-strategy.html` — 4 strategy cards (luxury/penetration/alignment/discriminatory); conditional alignment price input (shown only when alignment selected, R4); conditional segments table (shown only when discriminatory selected)
-- [ ] T029 [US2] Implement `js/pages/strategy.js` — `renderStrategy()`: highlights active strategy card, shows/hides conditional sections, renders segment table rows with `base_price = optimalPrice × multiplier`, `final_price = applyPriceType(base_price)`, status badge per R3
-- [ ] T030 [US2] Add inline segment row editing (name, multiplier) to `page-strategy.html` and `strategy.js`; changes update `state.segments` and trigger `renderAll()`
-- [ ] T031 [US2] Embed strategy page and segment logic inline in `index.html`
+- [x] T028 [US2] Implement `partials/page-strategy.html` — 4 strategy cards (luxury/penetration/alignment/discriminatory); conditional alignment price input (shown only when alignment selected, R4); conditional segments table (shown only when discriminatory selected)
+- [x] T029 [US2] Implement `js/pages/strategy.js` — `renderStrategy()`: highlights active strategy card, shows/hides conditional sections, renders segment table rows with `base_price = optimalPrice × multiplier`, `final_price = applyPriceType(base_price)`, status badge per R3
+- [x] T030 [US2] Add inline segment row editing (name, multiplier) to `page-strategy.html` and `strategy.js`; changes update `state.segments` and trigger `renderAll()`
+- [x] T031 [US2] Embed strategy page and segment logic inline in `index.html`
 
 ### Backend — US2
 
-- [ ] T032 [P] [US2] Implement `StrategyRequest.java` and `StrategyResponse.java` Records in `dto/` with enum validation
-- [ ] T033 [P] [US2] Implement `SegmentRequest.java` and `SegmentResponse.java` Records in `dto/`
-- [ ] T034 [US2] Implement `StrategyService.java` — upsert strategy; validate enum values
-- [ ] T035 [US2] Implement `StrategyController.java` — `GET/PUT /api/v1/projects/{id}/strategy`
-- [ ] T036 [US2] Implement `SegmentController.java` — `GET /api/v1/projects/{id}/segments`, `POST`, `PUT /{sid}`, `DELETE /{sid}` per contract
+- [x] T032 [P] [US2] Implement `StrategyRequest.java` and `StrategyResponse.java` Records in `dto/` with enum validation
+- [x] T033 [P] [US2] Implement `SegmentRequest.java` and `SegmentResponse.java` Records in `dto/`
+- [x] T034 [US2] Implement `StrategyService.java` — upsert strategy; validate enum values
+- [x] T035 [US2] Implement `StrategyController.java` — `GET/PUT /api/v1/projects/{id}/strategy`
+- [x] T036 [US2] Implement `SegmentController.java` — `GET /api/v1/projects/{id}/segments`, `POST`, `PUT /{sid}`, `DELETE /{sid}` per contract
 
 **Checkpoint**: User Stories 1 and 2 independently functional.
 
@@ -131,9 +131,9 @@ Select "Rounded" with price=312 → displays 310.
 
 ### Frontend — US3
 
-- [ ] T037 [US3] Implement `partials/page-pricetype.html` — 3 type cards; large before/after price display; comparison table with 4 example price levels per PRD §4.3
-- [ ] T038 [US3] Implement `js/pages/pricetype.js` — `renderPriceType()`: highlights active type, renders before price (strategic price), after price (finalPrice), example comparison table with colour-coded variation, alert on active type's psychological effect
-- [ ] T039 [US3] Embed price type page inline in `index.html`
+- [x] T037 [US3] Implement `partials/page-pricetype.html` — 3 type cards; large before/after price display; comparison table with 4 example price levels per PRD §4.3
+- [x] T038 [US3] Implement `js/pages/pricetype.js` — `renderPriceType()`: highlights active type, renders before price (strategic price), after price (finalPrice), example comparison table with colour-coded variation, alert on active type's psychological effect
+- [x] T039 [US3] Embed price type page inline in `index.html`
 
 *(Backend: priceType is a field on pricing_strategy — already covered by T032–T035 in US2.)*
 
@@ -151,18 +151,18 @@ company square + competitor circles; distance table shows euclidean distances in
 
 ### Frontend — US4
 
-- [ ] T040 [US4] Implement `partials/page-positioning.html` — axis label inputs (4), company position (X/Y/name), competitor list (add/remove rows with name/x/y/color picker)
-- [ ] T041 [US4] Implement `js/pages/positioning.js` — `renderPositioning()`: draws HTML5 Canvas (background grid at 25/50/75, axis arrows with labels, company as 45°-rotated blue square, competitors as coloured circles with labels), renders sorted distance analysis table per PRD §4.4 formula `√((Δx)²+(Δy)²)`
-- [ ] T042 [US4] Add competitor CRUD in `page-positioning.html` and `positioning.js`; each add/remove/edit triggers `renderAll()`
-- [ ] T043 [US4] Embed positioning page and canvas logic inline in `index.html`
+- [x] T040 [US4] Implement `partials/page-positioning.html` — axis label inputs (4), company position (X/Y/name), competitor list (add/remove rows with name/x/y/color picker)
+- [x] T041 [US4] Implement `js/pages/positioning.js` — `renderPositioning()`: draws HTML5 Canvas (background grid at 25/50/75, axis arrows with labels, company as 45°-rotated blue square, competitors as coloured circles with labels), renders sorted distance analysis table per PRD §4.4 formula `√((Δx)²+(Δy)²)`
+- [x] T042 [US4] Add competitor CRUD in `page-positioning.html` and `positioning.js`; each add/remove/edit triggers `renderAll()`
+- [x] T043 [US4] Embed positioning page and canvas logic inline in `index.html`
 
 ### Backend — US4
 
-- [ ] T044 [P] [US4] Implement `PositioningRequest.java` and `PositioningResponse.java` Records in `dto/`
-- [ ] T045 [P] [US4] Implement `CompetitorRequest.java` and `CompetitorResponse.java` Records — include hex color regex validation `@Pattern(regexp="#[0-9A-Fa-f]{6}")`
-- [ ] T046 [US4] Implement `PositioningService.java` — upsert positioning config
-- [ ] T047 [US4] Implement `PositioningController.java` — `GET/PUT /api/v1/projects/{id}/positioning`
-- [ ] T048 [US4] Implement `CompetitorController.java` — full CRUD per contract (`GET`, `POST`, `PUT /{cid}`, `DELETE /{cid}`)
+- [x] T044 [P] [US4] Implement `PositioningRequest.java` and `PositioningResponse.java` Records in `dto/`
+- [x] T045 [P] [US4] Implement `CompetitorRequest.java` and `CompetitorResponse.java` Records — include hex color regex validation `@Pattern(regexp="#[0-9A-Fa-f]{6}")`
+- [x] T046 [US4] Implement `PositioningService.java` — upsert positioning config
+- [x] T047 [US4] Implement `PositioningController.java` — `GET/PUT /api/v1/projects/{id}/positioning`
+- [x] T048 [US4] Implement `CompetitorController.java` — full CRUD per contract (`GET`, `POST`, `PUT /{cid}`, `DELETE /{cid}`)
 
 **Checkpoint**: User Stories 1–4 independently functional.
 
@@ -179,15 +179,15 @@ dot in the correct quadrant; clicking the quadrant shows the detail panel with r
 
 ### Frontend — US5
 
-- [ ] T049 [US5] Implement `partials/page-ansoff.html` — 2×2 grid with quadrant labels, risk badges, initiative dots; initiative form (name/quadrant/description); detail side panel per PRD §4.5
-- [ ] T050 [US5] Implement `js/pages/ansoff.js` — `renderAnsoff()`: renders initiative dots in correct quadrant, handles quadrant click to show detail panel (5 recommended actions, pricing recommendation, risk analysis, cannibalisation warning for product-dev quadrant)
-- [ ] T051 [US5] Add initiative CRUD in `page-ansoff.html` and `ansoff.js`; each change triggers `renderAll()`
-- [ ] T052 [US5] Embed Ansoff page inline in `index.html`
+- [x] T049 [US5] Implement `partials/page-ansoff.html` — 2×2 grid with quadrant labels, risk badges, initiative dots; initiative form (name/quadrant/description); detail side panel per PRD §4.5
+- [x] T050 [US5] Implement `js/pages/ansoff.js` — `renderAnsoff()`: renders initiative dots in correct quadrant, handles quadrant click to show detail panel (5 recommended actions, pricing recommendation, risk analysis, cannibalisation warning for product-dev quadrant)
+- [x] T051 [US5] Add initiative CRUD in `page-ansoff.html` and `ansoff.js`; each change triggers `renderAll()`
+- [x] T052 [US5] Embed Ansoff page inline in `index.html`
 
 ### Backend — US5
 
-- [ ] T053 [P] [US5] Implement `AnsoffRequest.java` and `AnsoffResponse.java` Records — `@NotBlank` name, `@NotNull` quadrant with enum validation
-- [ ] T054 [US5] Implement `AnsoffController.java` — full CRUD per contract (`GET`, `POST`, `PUT /{iid}`, `DELETE /{iid}`)
+- [x] T053 [P] [US5] Implement `AnsoffRequest.java` and `AnsoffResponse.java` Records — `@NotBlank` name, `@NotNull` quadrant with enum validation
+- [x] T054 [US5] Implement `AnsoffController.java` — full CRUD per contract (`GET`, `POST`, `PUT /{iid}`, `DELETE /{iid}`)
 
 **Checkpoint**: User Stories 1–5 independently functional.
 
@@ -204,9 +204,9 @@ all inputs; verify threshold alert matches 🔴/🟡/🟢 logic per PRD §4.6.
 
 ### Frontend — US6
 
-- [ ] T055 [US6] Implement `partials/page-synthesis.html` — 5 KPI cards (Prix Minimum/Optimal/Final, Marge Effective, CA Mensuel Estimé), summary table with all strategy parameters, threshold validation alert, discriminatory segment table (shown only when strategy=discriminatory) per PRD §4.6
-- [ ] T056 [US6] Implement `js/pages/synthesis.js` — `renderSynthesis()`: pulls from `calcCosts()`, `strategyPrice()`, `finalPrice()`; computes `effectiveMargin = (finalPrice − unitCost) / finalPrice × 100`; renders `caEstimé = finalPrice × volume`; threshold alert uses same R1 logic as costs page
-- [ ] T057 [US6] Embed synthesis page inline in `index.html`
+- [x] T055 [US6] Implement `partials/page-synthesis.html` — 5 KPI cards (Prix Minimum/Optimal/Final, Marge Effective, CA Mensuel Estimé), summary table with all strategy parameters, threshold validation alert, discriminatory segment table (shown only when strategy=discriminatory) per PRD §4.6
+- [x] T056 [US6] Implement `js/pages/synthesis.js` — `renderSynthesis()`: pulls from `calcCosts()`, `strategyPrice()`, `finalPrice()`; computes `effectiveMargin = (finalPrice − unitCost) / finalPrice × 100`; renders `caEstimé = finalPrice × volume`; threshold alert uses same R1 logic as costs page
+- [x] T057 [US6] Embed synthesis page inline in `index.html`
 
 *(No separate backend controller needed — Synthesis reads from all other already-implemented endpoints.)*
 
@@ -221,10 +221,10 @@ all inputs; verify threshold alert matches 🔴/🟡/🟢 logic per PRD §4.6.
 - [ ] T058 [P] Run all quickstart.md business-rule smoke tests against `index.html` standalone (R1–R7, magic/psychological/rounded price transformations)
 - [ ] T059 [P] Verify WCAG AA contrast on 🔴/🟡/🟢 alert colours in Chrome DevTools accessibility audit
 - [ ] T060 [P] Test `index.html` in Chrome, Firefox, Edge, and Safari (last 2 major) — canvas rendering, all 6 pages, real-time recalculation
-- [ ] T061 Verify `GET /api/v1/projects/{id}` snapshot endpoint returns complete nested object (project + all child records) via `ProjectService.getSnapshot()` and `ProjectController`
-- [ ] T062 [P] Add `@ControllerAdvice` global exception handler in `src/main/java/com/prf/prixstrategie/config/GlobalExceptionHandler.java` returning error format per `specs/main/contracts/rest-api.md` (timestamp, status, errors[])
-- [ ] T063 Run `mvn test` — confirm all backend unit/integration tests pass
-- [ ] T064 [P] Validate that `index.html` file size is reasonable (< 500 KB); inline all modular sources if needed
+- [x] T061 Verify `GET /api/v1/projects/{id}` snapshot endpoint returns complete nested object (project + all child records) via `ProjectService.getSnapshot()` and `ProjectController`
+- [x] T062 [P] Add `@ControllerAdvice` global exception handler in `src/main/java/com/prf/prixstrategie/config/GlobalExceptionHandler.java` returning error format per `specs/main/contracts/rest-api.md` (timestamp, status, errors[])
+- [x] T063 Run `mvn test` — confirm all backend unit/integration tests pass
+- [x] T064 [P] Validate that `index.html` file size is reasonable (< 500 KB); inline all modular sources if needed
 
 ---
 
