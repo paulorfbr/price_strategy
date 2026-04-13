@@ -1,0 +1,26 @@
+# Copy this file to terraform.tfvars and fill in the values.
+# terraform.tfvars is git-ignored — never commit secrets.
+
+aws_region  = "eu-west-1"
+environment = "prod"
+app_name    = "prix-strategie"
+
+# Frontend
+domain_name = ""   # e.g. "app.exemple.fr" — leave empty to use CloudFront default domain
+
+# Backend
+backend_image_tag     = "latest"
+backend_cpu           = 512
+backend_memory        = 1024
+backend_desired_count = 1
+
+# Database
+db_instance_class = "db.t3.micro"
+db_name           = "prixstrategie"
+db_username       = "prixadmin"
+db_password       = "CHANGE_ME"   # use: export TF_VAR_db_password="..." instead
+db_multi_az       = false
+
+# Networking
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["eu-west-1a", "eu-west-1b"]

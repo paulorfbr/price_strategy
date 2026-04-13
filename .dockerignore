@@ -1,0 +1,15 @@
+.git
+.github
+.idea
+target
+infra
+specs
+*.md
+partials
+css
+js
+index.html
+db
+marketing
+.specify
+.claude
